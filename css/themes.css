@@ -1,0 +1,216 @@
+/* ===========================
+   THEME SYSTEM
+   =========================== */
+
+[data-theme="klassika"] {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --accent: #c9a84c;
+    --accent2: #e8c97a;
+    --accent-dim: rgba(201,168,76,0.15);
+    --p1: #c0392b;
+    --p2: #2471a3;
+    --p1-light: rgba(192,57,43,0.35);
+    --p2-light: rgba(36,113,163,0.35);
+    --neutral: #2a2e3a;
+    --text: #e8dcc8;
+    --text-dim: #8a7d6a;
+    --border: rgba(201,168,76,0.22);
+    --modal-bg: rgba(0,0,0,0.88);
+    --board-gap: #0d0f14;
+    --success: #27ae60;
+    --fail: #c0392b;
+    --font-title: 'Cinzel', serif;
+    --font-body: 'Crimson Text', Georgia, serif;
+    --radius: 3px;
+    --board-radius: 2px;
+    --glow: 0 0 20px rgba(201,168,76,0.3);
+    --glow-intense: 0 0 30px rgba(201,168,76,0.6);
+}
+
+[data-theme="akademiya"] {
+    --bg: #f4f0e6;
+    --surface: #fffdf6;
+    --surface2: #f0ead8;
+    --accent: #2d6a2d;
+    --accent2: #4a9e4a;
+    --accent-dim: rgba(45,106,45,0.12);
+    --p1: #8b1a1a;
+    --p2: #1a3d6b;
+    --p1-light: rgba(139,26,26,0.18);
+    --p2-light: rgba(26,61,107,0.18);
+    --neutral: #ddd5c0;
+    --text: #2a1f0e;
+    --text-dim: #7a6a4a;
+    --border: rgba(45,106,45,0.25);
+    --modal-bg: rgba(20,12,0,0.75);
+    --board-gap: #c8bfa8;
+    --success: #1e6b1e;
+    --fail: #8b1a1a;
+    --font-title: 'Playfair Display', serif;
+    --font-body: 'Crimson Text', Georgia, serif;
+    --radius: 4px;
+    --board-radius: 2px;
+    --glow: 0 0 20px rgba(45,106,45,0.3);
+    --glow-intense: 0 0 30px rgba(45,106,45,0.6);
+}
+
+[data-theme="kiberfazo"] {
+    --bg: #050812;
+    --surface: #080d1e;
+    --surface2: #0c1228;
+    --accent: #00f5ff;
+    --accent2: #7b2fff;
+    --accent-dim: rgba(0,245,255,0.1);
+    --p1: #ff2d6b;
+    --p2: #00c3ff;
+    --p1-light: rgba(255,45,107,0.25);
+    --p2-light: rgba(0,195,255,0.25);
+    --neutral: #0f1530;
+    --text: #c8e6ff;
+    --text-dim: #4a7090;
+    --border: rgba(0,245,255,0.2);
+    --modal-bg: rgba(0,5,20,0.95);
+    --board-gap: #050812;
+    --success: #00ff88;
+    --fail: #ff2d6b;
+    --font-title: 'Orbitron', monospace;
+    --font-body: 'Josefin Sans', sans-serif;
+    --radius: 2px;
+    --board-radius: 0px;
+    --glow: 0 0 20px #00f5ff;
+    --glow-intense: 0 0 30px #00f5ff, 0 0 30px #7b2fff;
+}
+
+[data-theme="chol"] {
+    --bg: #1e1208;
+    --surface: #2a1a0a;
+    --surface2: #352210;
+    --accent: #e8913a;
+    --accent2: #f5c060;
+    --accent-dim: rgba(232,145,58,0.15);
+    --p1: #c44b1b;
+    --p2: #3a7a4a;
+    --p1-light: rgba(196,75,27,0.3);
+    --p2-light: rgba(58,122,74,0.3);
+    --neutral: #3a2814;
+    --text: #f2ddb8;
+    --text-dim: #9a7a50;
+    --border: rgba(232,145,58,0.25);
+    --modal-bg: rgba(10,5,0,0.9);
+    --board-gap: #1e1208;
+    --success: #3a7a4a;
+    --fail: #c44b1b;
+    --font-title: 'Cinzel', serif;
+    --font-body: 'Josefin Sans', sans-serif;
+    --radius: 1px;
+    --board-radius: 0px;
+    --glow: 0 0 20px rgba(232,145,58,0.4);
+    --glow-intense: 0 0 30px rgba(232,145,58,0.7);
+}
+
+[data-theme="rangbarang"] {
+    --bg: #1a0a3d;
+    --surface: #231452;
+    --surface2: #2e1a6a;
+    --accent: #ffdd00;
+    --accent2: #ff9f1c;
+    --accent-dim: rgba(255,221,0,0.15);
+    --p1: #ff4757;
+    --p2: #2ed573;
+    --p1-light: rgba(255,71,87,0.3);
+    --p2-light: rgba(46,213,115,0.3);
+    --neutral: #342070;
+    --text: #ffffff;
+    --text-dim: #a080d0;
+    --border: rgba(255,221,0,0.25);
+    --modal-bg: rgba(10,0,40,0.92);
+    --board-gap: #120730;
+    --success: #2ed573;
+    --fail: #ff4757;
+    --font-title: 'Nunito', sans-serif;
+    --font-body: 'Nunito', sans-serif;
+    --radius: 12px;
+    --board-radius: 8px;
+    --glow: 0 0 20px rgba(255,221,0,0.5);
+    --glow-intense: 0 0 30px rgba(255,221,0,0.8), 0 0 30px rgba(255,159,28,0.8);
+}
+
+/* Theme backgrounds */
+[data-theme="klassika"] body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+        radial-gradient(ellipse 60% 40% at 20% 50%, rgba(201,168,76,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 50%, rgba(36,113,163,0.04) 0%, transparent 60%);
+}
+
+[data-theme="kiberfazo"] body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+        radial-gradient(ellipse 50% 60% at 10% 20%, rgba(0,245,255,0.06) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 60% at 90% 80%, rgba(123,47,255,0.08) 0%, transparent 50%);
+}
+
+[data-theme="rangbarang"] body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+        radial-gradient(ellipse 60% 50% at 30% 20%, rgba(255,71,87,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 50% at 70% 80%, rgba(46,213,115,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(255,221,0,0.04) 0%, transparent 50%);
+}
+
+[data-theme="kiberfazo"] #game-screen::after,
+[data-theme="kiberfazo"] #setup-screen::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 200;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0,245,255,0.015) 0px,
+        rgba(0,245,255,0.015) 1px,
+        transparent 1px,
+        transparent 3px
+    );
+}
+
+[data-theme="akademiya"] body {
+    background-image: 
+        repeating-linear-gradient(0deg, rgba(45,106,45,0.02) 0px, rgba(45,106,45,0.02) 1px, transparent 1px, transparent 28px);
+}
+
+[data-theme="rangbarang"] #setup-screen::before,
+[data-theme="rangbarang"] #game-screen::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        radial-gradient(1px 1px at 20% 30%, white 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 10%, white 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 70%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(2px 2px at 30% 50%, rgba(255,221,0,0.4) 0%, transparent 100%),
+        radial-gradient(2px 2px at 70% 90%, rgba(46,213,115,0.3) 0%, transparent 100%);
+}
+
+/* Theme-specific effects */
+[data-theme="kiberfazo"] .cell {
+    box-shadow: 0 0 5px rgba(0,245,255,0.3);
+}
+
+[data-theme="kiberfazo"] .cell.selected {
+    box-shadow: 0 0 20px #00f5ff, inset 0 0 10px #00f5ff !important;
+}
+
+[data-theme="rangbarang"] .cell {
+    border-radius: 10px;
+}
+
+[data-theme="rangbarang"] .cell.selected {
+    box-shadow: 0 0 0 3px #ffdd00, 0 0 20px #ffdd00 !important;
+}

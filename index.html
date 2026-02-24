@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Strategiya Elita — Bilim Shaxmati</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Orbitron:wght@400;700;900&family=Nunito:wght@400;700;800;900&family=Playfair+Display:wght@400;700;900&family=Josefin+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Author Credit -->
+<div class="author-credit">Muallif: Akmalov Bositxon</div>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen" class="screen active">
+    <div class="logo">
+        <div class="logo-title">STRATEGIYA</div>
+        <div class="logo-line"></div>
+        <div class="logo-subtitle">Harbiy Intellekt Duel</div>
+        <br>
+        <div class="logo-subtitle">Muallif: Akmalov Bositxon</div>
+    </div>
+
+    <!-- THEME SWITCHER - Now with visible colors -->
+    <div class="theme-switcher">
+        <div class="theme-item">
+            <div class="theme-dot active" data-t="klassika" onclick="setTheme('klassika',this)" title="Oltin Klassika" style="background: linear-gradient(135deg, #0d0f14 50%, #c9a84c 50%); border: 2px solid #c9a84c;"></div>
+            <span class="theme-label" style="color: #c9a84c;">Klassika</span>
+        </div>
+        <div class="theme-item">
+            <div class="theme-dot" data-t="akademiya" onclick="setTheme('akademiya',this)" title="Yashil Akademiya" style="background: linear-gradient(135deg, #f4f0e6 50%, #2d6a2d 50%); border: 2px solid #2d6a2d;"></div>
+            <span class="theme-label" style="color: #2d6a2d;">Akademiya</span>
+        </div>
+        <div class="theme-item">
+            <div class="theme-dot" data-t="kiberfazo" onclick="setTheme('kiberfazo',this)" title="Kiberfazo" style="background: linear-gradient(135deg, #050812 50%, #00f5ff 50%); border: 2px solid #00f5ff;"></div>
+            <span class="theme-label" style="color: #00f5ff;">Kiberfazo</span>
+        </div>
+        <div class="theme-item">
+            <div class="theme-dot" data-t="chol" onclick="setTheme('chol',this)" title="Qumli Cho'l" style="background: linear-gradient(135deg, #1e1208 50%, #e8913a 50%); border: 2px solid #e8913a;"></div>
+            <span class="theme-label" style="color: #e8913a;">Cho'l</span>
+        </div>
+        <div class="theme-item">
+            <div class="theme-dot" data-t="rangbarang" onclick="setTheme('rangbarang',this)" title="Rang-barang" style="background: linear-gradient(135deg, #1a0a3d 50%, #ffdd00 50%); border: 2px solid #ffdd00;"></div>
+            <span class="theme-label" style="color: #ffdd00;">Rang-barang</span>
+        </div>
+    </div>
+
+    <div class="setup-card">
+        <div class="setup-section">
+            <span class="setup-label">O'yinchilar</span>
+            <div class="player-row">
+                <input class="player-input p1" id="p1-name" type="text" placeholder="1-o'yinchi (Qizil)" maxlength="20" value="">
+                <input class="player-input p2" id="p2-name" type="text" placeholder="2-o'yinchi (Ko'k)" maxlength="20" value="">
+            </div>
+        </div>
+        
+        <div class="setup-section">
+            <span class="setup-label">Qiyinchilik darajasi</span>
+            <div class="difficulty-selector">
+                <button class="difficulty-btn difficulty-easy" data-difficulty="easy" onclick="selectDifficulty('easy', this)">Oson</button>
+                <button class="difficulty-btn difficulty-medium selected" data-difficulty="medium" onclick="selectDifficulty('medium', this)">O'rta</button>
+                <button class="difficulty-btn difficulty-hard" data-difficulty="hard" onclick="selectDifficulty('hard', this)">Qiyin</button>
+            </div>
+        </div>
+        
+        <div class="setup-section">
+            <span class="setup-label">Vaqt chegarasi</span>
+            <div class="time-options">
+                <button class="time-btn" data-time="300">5 daq</button>
+                <button class="time-btn selected" data-time="600">10 daq</button>
+                <button class="time-btn" data-time="900">15 daq</button>
+                <button class="time-btn" data-time="1200">20 daq</button>
+            </div>
+        </div>
+        
+        <button class="start-btn" onclick="startGame()">⚔ Jangni boshlash</button>
+        <button class="teacher-mode-btn" onclick="toggleTeacherMode()">👨‍🏫 O'qituvchi rejimi</button>
+    </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="screen">
+    <div class="game-header">
+        <div class="player-panel p1" id="panel-p1">
+            <div class="player-label">Qizil qo'shin</div>
+            <div class="player-name" id="name-p1">1-o'yinchi</div>
+            <div class="player-score" id="score-p1">0</div>
+            <div class="player-label">katakcha</div>
+            <div class="combo-counter" id="combo-p1" style="display: none;">0</div>
+        </div>
+        <div class="timer-display">
+            <div class="timer-value" id="timer-display">10:00</div>
+            <div class="timer-label">Qolgan vaqt</div>
+            <div class="turn-indicator" id="turn-indicator">Navbat: —</div>
+        </div>
+        <div class="player-panel p2" id="panel-p2">
+            <div class="player-label">Ko'k qo'shin</div>
+            <div class="player-name" id="name-p2">2-o'yinchi</div>
+            <div class="player-score" id="score-p2">0</div>
+            <div class="player-label">katakcha</div>
+            <div class="combo-counter" id="combo-p2" style="display: none;">0</div>
+        </div>
+    </div>
+    
+    <div class="status-bar" id="status-bar">Yurish uchun figurani tanlang</div>
+    
+    <div class="board-container">
+        <div id="chess-board"></div>
+    </div>
+    
+    <button class="end-game-btn" onclick="endGameEarly()">🏁 Jangni tugatish</button>
+</div>
+
+<!-- END SCREEN -->
+<div id="end-screen" class="screen">
+    <div class="end-card">
+        <div class="end-title">Jang yakunlandi</div>
+        <div class="end-winner" id="end-winner">—</div>
+        <div class="end-subtitle" id="end-subtitle">Bilim kuch — hududni nazorat qil</div>
+        <div class="checkmate-bonus" id="checkmate-bonus" style="display: none;">+5 Checkmate bonusi!</div>
+        <div class="end-scores">
+            <div class="end-score-box p1">
+                <div class="end-score-name" id="end-name-p1">1-o'yinchi</div>
+                <div class="end-score-num" id="end-num-p1">0</div>
+                <div class="end-score-label">katakcha</div>
+            </div>
+            <div class="end-score-box p2">
+                <div class="end-score-name" id="end-name-p2">2-o'yinchi</div>
+                <div class="end-score-num" id="end-num-p2">0</div>
+                <div class="end-score-label">katakcha</div>
+            </div>
+        </div>
+        <button class="play-again-btn" onclick="resetGame()">↩ Yangi jang</button>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+    <div class="modal">
+        <div class="modal-badge">Bilim sinovi</div>
+        <div class="question-timer" id="question-timer" style="display: none;"></div>
+        <div class="modal-question" id="modal-question">Savol yuklanmoqda...</div>
+        <div class="answer-options" id="answer-options"></div>
+        <div class="modal-result" id="modal-result"></div>
+        <button class="modal-continue" id="modal-continue" onclick="continueAfterAnswer()">Davom etish</button>
+    </div>
+</div>
+
+<!-- TEACHER MODE -->
+<div class="teacher-overlay" id="teacher-overlay" onclick="toggleTeacherMode()"></div>
+<div class="teacher-panel" id="teacher-panel">
+    <div class="teacher-header">
+        <span class="teacher-title">👨‍🏫 O'qituvchi rejimi - Savollar bazasi</span>
+        <span class="teacher-close" onclick="toggleTeacherMode()">✕</span>
+    </div>
+    
+    <div class="question-list" id="question-list">
+        <!-- Questions will be dynamically added here -->
+    </div>
+    
+    <div class="add-question-form">
+        <h3 style="color: var(--accent); margin-bottom: 10px;">Yangi savol qo'shish</h3>
+        <input type="text" id="new-question" placeholder="Savol matni">
+        <input type="text" id="new-opt1" placeholder="1-variant (to'g'ri javob)">
+        <input type="text" id="new-opt2" placeholder="2-variant">
+        <input type="text" id="new-opt3" placeholder="3-variant (ixtiyoriy)">
+        <input type="text" id="new-opt4" placeholder="4-variant (ixtiyoriy)">
+        <select id="new-difficulty">
+            <option value="easy">Oson (2 variant)</option>
+            <option value="medium" selected>O'rta (4 variant)</option>
+            <option value="hard">Qiyin (4 variant + vaqt)</option>
+        </select>
+        <button class="add-question-btn" onclick="addTeacherQuestion()">Savol qo'shish</button>
+        <button class="add-question-btn" style="background: #e67e22;" onclick="exportQuestions()">📥 Savollarni eksport qilish</button>
+        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importQuestions(event)">
+        <button class="add-question-btn" style="background: #3498db;" onclick="document.getElementById('import-file').click()">📤 Savollarni import qilish</button>
+    </div>
+</div>
+
+<!-- JavaScript Files -->
+<script src="js/questions.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/chess-engine.js"></script>
+<script src="js/teacher-mode.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
