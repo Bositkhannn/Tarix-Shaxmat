@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Intellekt Dueli – Shashka</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-to-hub" id="backToHubBtn">← Asosiy menyu</a>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- ══════════════════════ SETUP ══════════════════════ -->
+<div id="setup-screen" class="screen active">
+  <div class="setup-card">
+
+    <div class="logo-area">
+      <div class="logo-icon">♛</div>
+      <h1 class="logo-title">Shashka O'yini</h1>
+      <p class="logo-sub">Jaloliddin Manguberdi haqida</p>
+      <p class="logo-author">Muallif: Akmalov Bositxon</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-label">O'yinchilar</div>
+    <div class="players-row">
+      <div class="player-setup p1-setup">
+        <div class="player-setup-icon">⬤</div>
+        <div class="player-setup-fields">
+          <label>Oq donalar · 1-o'yinchi</label>
+          <input id="p1-name" value="Sarkarda" placeholder="Ism kiriting">
+        </div>
+      </div>
+      <div class="player-setup p2-setup">
+        <div class="player-setup-icon dark-icon">⬤</div>
+        <div class="player-setup-fields">
+          <label>Qora donalar · 2-o'yinchi</label>
+          <input id="p2-name" value="Botir" placeholder="Ism kiriting">
+        </div>
+      </div>
+    </div>
+
+    <div class="options-row">
+      <div class="option-group">
+        <div class="section-label">Qiyinlik</div>
+        <select id="difficulty">
+          <option value="easy">🟢 Oson (2 variant)</option>
+          <option value="medium" selected>🟡 O'rta (4 variant)</option>
+          <option value="hard">🔴 Qiyin (4 + taymer)</option>
+        </select>
+      </div>
+      <div class="option-group">
+        <div class="section-label">O'yin vaqti</div>
+        <select id="time-limit">
+          <option value="5">5 daqiqa</option>
+          <option value="10" selected>10 daqiqa</option>
+          <option value="15">15 daqiqa</option>
+          <option value="20">20 daqiqa</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label">Mavzu</div>
+    <div class="themes-row">
+      <button class="theme-btn active" data-t="classic">Klassik</button>
+      <button class="theme-btn" data-t="academy">Akademiya</button>
+      <button class="theme-btn" data-t="cyber">Kiber</button>
+      <button class="theme-btn" data-t="desert">Cho'l</button>
+      <button class="theme-btn" data-t="colorful">Rangli</button>
+    </div>
+
+    <div class="setup-actions">
+      <button class="btn btn-primary" onclick="startGame()">⚔ Jangni Boshlash</button>
+      <button class="btn btn-ghost" onclick="openTeacher()">📚 Savollar bazasi</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════ GAME ══════════════════════ -->
+<div id="game-screen" class="screen">
+
+  <header class="game-header">
+    <div class="player-panel" id="p1-panel">
+      <span class="pp-dot white-dot">⬤</span>
+      <div class="pp-info">
+        <span class="pp-name" id="p1-name-disp">Sarkarda</span>
+        <span class="pp-score-label">Hudud</span>
+      </div>
+      <span class="pp-score" id="p1-score">0</span>
+      <span class="pp-combo" id="p1-combo"></span>
+      <span class="pp-timer" id="p1-timer">10:00</span>
+    </div>
+
+    <div class="header-mid">
+      <div class="turn-badge" id="turn-label">OQ yurishi</div>
+      <button class="btn btn-danger btn-sm" onclick="confirmEndGame()">🏳 Tugatish</button>
+    </div>
+
+    <div class="player-panel" id="p2-panel">
+      <span class="pp-timer" id="p2-timer">10:00</span>
+      <span class="pp-combo" id="p2-combo"></span>
+      <span class="pp-score" id="p2-score">0</span>
+      <div class="pp-info pp-info-right">
+        <span class="pp-name" id="p2-name-disp">Botir</span>
+        <span class="pp-score-label">Hudud</span>
+      </div>
+      <span class="pp-dot dark-dot">⬤</span>
+    </div>
+  </header>
+
+  <main class="game-body">
+    <div class="board-wrap">
+      <div id="checkers-board"></div>
+    </div>
+  </main>
+
+  <div class="status-bar" id="status-bar">O'yin boshlandi!</div>
+
+</div>
+
+<!-- ══════════════════════ GAME OVER ══════════════════════ -->
+<div id="gameover-screen" class="screen">
+  <div class="gameover-card">
+    <div class="go-trophy" id="go-trophy">🏆</div>
+    <div class="go-label" id="go-label">G'OLIB</div>
+    <div class="go-winner" id="go-winner"></div>
+    <div class="go-scores">
+      <div class="go-score-box">
+        <div class="gsb-name" id="go-name1"></div>
+        <div class="gsb-num" id="go-num1">0</div>
+      </div>
+      <div class="go-vs">vs</div>
+      <div class="go-score-box">
+        <div class="gsb-name" id="go-name2"></div>
+        <div class="gsb-num" id="go-num2">0</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="goToSetup()">🔄 Qayta o'ynash</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ QUESTION MODAL ══════════════════════ -->
+<div class="modal-overlay" id="question-modal">
+  <div class="modal question-modal-inner">
+    <div class="qm-header">
+      <div class="qm-player" id="q-player-name">Savol</div>
+      <div class="qm-badge" id="q-difficulty-badge">O'RTA</div>
+    </div>
+    <div class="qm-timer-bar" id="q-timer-bar" style="display:none">
+      <div class="qm-timer-fill" id="q-timer-fill"></div>
+    </div>
+    <div class="qm-question" id="q-text"></div>
+    <div class="qm-answers" id="q-answers"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TEACHER MODAL ══════════════════════ -->
+<div class="modal-overlay" id="teacher-modal">
+  <div class="modal teacher-modal-inner">
+    <div class="modal-header">
+      <h2>📚 Savollar bazasi</h2>
+      <button class="modal-close" onclick="closeTeacher()">✕</button>
+    </div>
+    <div class="teacher-tabs">
+      <button class="tab-btn active" id="tbtn-add" onclick="switchTab('add')">➕ Qo'shish</button>
+      <button class="tab-btn" id="tbtn-list" onclick="switchTab('list')">📋 Ro'yxat</button>
+      <button class="tab-btn" id="tbtn-ie" onclick="switchTab('ie')">📦 Import / Export</button>
+    </div>
+
+    <!-- ADD TAB -->
+    <div id="tab-add" class="tab-pane">
+      <textarea id="new-question" placeholder="Savol matni..." rows="3"></textarea>
+      <div class="answer-inputs">
+        <input id="ans1" placeholder="A) birinchi javob">
+        <input id="ans2" placeholder="B) ikkinchi javob">
+        <input id="ans3" placeholder="C) uchinchi javob">
+        <input id="ans4" placeholder="D) to'rtinchi javob">
+      </div>
+      <div class="teacher-selects">
+        <div class="select-group">
+          <label>To'g'ri javob</label>
+          <select id="correct-ans">
+            <option value="0">A</option>
+            <option value="1">B</option>
+            <option value="2">C</option>
+            <option value="3">D</option>
+          </select>
+        </div>
+        <div class="select-group">
+          <label>Mavzu</label>
+          <select id="q-topic">
+            <option value="history">Tarix</option>
+            <option value="science">Fan</option>
+            <option value="geo">Geografiya</option>
+            <option value="general">Umumiy</option>
+          </select>
+        </div>
+        <div class="select-group">
+          <label>Qiyinlik</label>
+          <select id="q-diff">
+            <option value="easy">Oson</option>
+            <option value="medium">O'rta</option>
+            <option value="hard">Qiyin</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="saveTeacherQuestion()">💾 Saqlash</button>
+    </div>
+
+    <!-- LIST TAB -->
+    <div id="tab-list" class="tab-pane" style="display:none">
+      <input id="search-q" placeholder="🔍 Qidirish..." oninput="renderQuestionList()">
+      <div class="question-list" id="questions-list"></div>
+    </div>
+
+    <!-- IMPORT/EXPORT TAB -->
+    <div id="tab-ie" class="tab-pane" style="display:none">
+      <p class="ie-hint">Savollarni JSON formatida eksport yoki import qiling.</p>
+      <div class="ie-btns">
+        <button class="btn btn-ghost" onclick="exportQuestions()">📥 Eksport JSON</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">📤 Import JSON</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importQuestions(this)">
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

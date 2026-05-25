@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>JALOLIDDIN – Intellekt Dueli (Shashka)</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+:root {
+  --bg: #0a0c10;
+  --surface: #111520;
+  --surface2: #1a2035;
+  --border: #2a3a5c;
+  --accent: #c9a84c;
+  --accent2: #e8c87a;
+  --red: #c0392b;
+  --blue: #1a6ea8;
+  --white-piece: #f5f0e0;
+  --black-piece: #2c2c3a;
+  --text: #d4c9b8;
+  --text2: #8899aa;
+  --glow: rgba(201,168,76,0.3);
+  --cell-light: #e8dcc8;
+  --cell-dark: #8b5a2b;
+  --cell-owned1: rgba(30,100,200,0.35);
+  --cell-owned2: rgba(180,30,30,0.35);
+  --cell-possible: rgba(201,168,76,0.4);
+  --cell-selected: rgba(201,168,76,0.65);
+  --font-title: 'Cinzel Decorative', serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+}
+
+[data-theme="academy"] {
+  --bg: #0d1b0d;
+  --surface: #112211;
+  --surface2: #1a3020;
+  --border: #2a5a3a;
+  --accent: #4caf7a;
+  --accent2: #7adf9a;
+  --glow: rgba(76,175,122,0.3);
+  --cell-light: #c8e6c9;
+  --cell-dark: #2e7d32;
+  --cell-owned1: rgba(30,160,80,0.35);
+  --cell-owned2: rgba(180,80,30,0.35);
+}
+
+[data-theme="cyber"] {
+  --bg: #050510;
+  --surface: #080820;
+  --surface2: #0d0d30;
+  --border: #1a1a6a;
+  --accent: #00ffff;
+  --accent2: #ff00ff;
+  --glow: rgba(0,255,255,0.35);
+  --cell-light: #1a1a3a;
+  --cell-dark: #0a0a1a;
+  --cell-owned1: rgba(0,200,255,0.5);
+  --cell-owned2: rgba(255,0,200,0.5);
+  --text: #c0e0ff;
+}
+
+[data-theme="desert"] {
+  --bg: #1a1006;
+  --surface: #251808;
+  --surface2: #35220a;
+  --border: #6a4a1a;
+  --accent: #f0a030;
+  --accent2: #ffd060;
+  --glow: rgba(240,160,48,0.3);
+  --cell-light: #f5deb3;
+  --cell-dark: #b86f2c;
+  --cell-owned1: rgba(30,120,200,0.45);
+  --cell-owned2: rgba(200,60,30,0.45);
+  --text: #f0d8a0;
+}
+
+[data-theme="colorful"] {
+  --bg: #0a0520;
+  --surface: #120830;
+  --surface2: #1e0f45;
+  --border: #5a2a8a;
+  --accent: #ff6b9d;
+  --accent2: #ffb347;
+  --glow: rgba(255,107,157,0.35);
+  --cell-light: #e1bee7;
+  --cell-dark: #7b1fa2;
+  --cell-owned1: rgba(100,200,255,0.5);
+  --cell-owned2: rgba(255,100,150,0.5);
+  --text: #ffe0f8;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+.screen { display: none; flex-direction: column; min-height: 100vh; }
+.screen.active { display: flex; }
+
+/* setup */
+.setup-card, .gameover-card, .modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 0 40px var(--glow);
+}
+#setup-screen { align-items: center; justify-content: center; padding: 20px; background: radial-gradient(ellipse at center, var(--surface2) 0%, var(--bg) 100%);}
+.game-logo h1 { font-family: var(--font-title); font-size: 2.8rem; color: var(--accent); text-shadow: 0 0 20px var(--glow); }
+.players-row { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+.player-setup { flex: 1; background: var(--surface2); border-radius: 16px; padding: 12px; }
+input, select { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 12px; }
+.btn { padding: 12px 24px; border-radius: 40px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; background: var(--surface2); color: var(--text); }
+.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; }
+.btn-danger { background: #c0392b; color: white; }
+.themes-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+.theme-btn { padding: 6px 14px; border-radius: 30px; background: var(--surface2); cursor: pointer; border: 1px solid var(--border); }
+
+/* game header */
+.game-header { display: flex; justify-content: space-between; background: var(--surface); padding: 10px 20px; border-bottom: 2px solid var(--border); align-items: center; flex-wrap: wrap; gap: 12px; }
+.player-info { display: flex; align-items: center; gap: 10px; background: var(--surface2); padding: 6px 16px; border-radius: 40px; border-left: 4px solid; }
+.player-info.active-turn { border: 2px solid var(--accent); box-shadow: 0 0 12px var(--glow); }
+.timer { font-family: var(--font-mono); font-size: 1.2rem; font-weight: bold; color: var(--accent2); }
+.combo { background: var(--accent); color: black; border-radius: 20px; padding: 2px 8px; font-size: 0.7rem; }
+
+/* board */
+.game-body { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+#checkers-board { display: grid; grid-template-columns: repeat(8, 1fr); border: 2px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 0 30px var(--glow); }
+.cell { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+.cell.light { background: var(--cell-light); }
+.cell.dark { background: var(--cell-dark); }
+.cell.owned-p1::after { content: ''; position: absolute; inset: 0; background: var(--cell-owned1); pointer-events: none; }
+.cell.owned-p2::after { background: var(--cell-owned2); }
+.cell.selected { box-shadow: inset 0 0 0 4px var(--accent); }
+.cell.possible-move::before { content: ''; position: absolute; width: 30%; height: 30%; background: var(--accent); border-radius: 50%; opacity: 0.8; }
+.cell.capture-move::before { background: var(--red); width: 40%; height: 40%; }
+.piece { font-size: clamp(28px, 8vw, 58px); line-height: 1; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); pointer-events: none; transition: 0.1s; }
+.piece.white { color: var(--white-piece); filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+.piece.black { color: var(--black-piece); text-shadow: 0 0 2px white, 2px 2px 2px black; }
+.piece.king { font-size: clamp(32px, 9vw, 66px); }
+
+/* modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 24px; }
+.question-text { font-size: 1.2rem; background: var(--surface2); padding: 16px; border-radius: 20px; margin: 16px 0; border-left: 6px solid var(--accent); }
+.answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.answer-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 40px; padding: 12px; text-align: left; font-weight: bold; cursor: pointer; transition: 0.1s; }
+.answer-btn.correct { background: #2e7d32; border-color: #4caf50; }
+.answer-btn.wrong { background: #c0392b; border-color: #e74c3c; }
+.timer-bar { height: 6px; background: var(--surface2); border-radius: 4px; margin: 10px 0; overflow: hidden; }
+.timer-fill { height: 100%; width: 100%; background: var(--accent); transition: width 0.1s linear; }
+
+/* teacher */
+.question-list { max-height: 300px; overflow-y: auto; }
+.q-item { background: var(--surface2); margin: 8px 0; padding: 8px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--surface); padding: 10px 24px; border-radius: 40px; z-index: 1100; opacity: 0; transition: 0.2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<canvas id="matrix-canvas" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:0;"></canvas>
+<canvas id="stars-canvas" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:0;"></canvas>
+
+<!-- SETUP -->
+<div id="setup-screen" class="screen active">
+  <div class="setup-card" style="max-width:650px;margin:auto;">
+    <div class="game-logo"><h1>JALOLIDDIN</h1><p>⚡ Intellekt Dueli – Shashka ⚡</p> <br><p style="font-size:0.8rem;">Muallif: Akmalov Bositxon</p></div> <br>
+
+    <div class="players-row"><div class="player-setup"><label>⬜ Oq (1-o‘yinchi)</label><input id="p1-name" value="Sarkarda"></div>
+    <div class="player-setup"><label>⬛ Qora (2-o‘yinchi)</label><input id="p2-name" value="Botir"></div></div>
+    <div class="options-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
+      <select id="difficulty"><option value="easy">🟢 Oson</option><option value="medium" selected>🟡 O‘rta</option><option value="hard">🔴 Qiyin</option></select>
+      <select id="time-limit"><option value="5">5 daqiqa</option><option value="10" selected>10 daqiqa</option><option value="15">15 daqiqa</option></select>
+    </div>
+    <div class="theme-selector"><label>🎨 Vizual mavzu</label><div class="themes-row">
+      <button class="theme-btn active" data-t="classic">Klassik</button><button class="theme-btn" data-t="academy">Akademiya</button>
+      <button class="theme-btn" data-t="cyber">Kiber</button><button class="theme-btn" data-t="desert">Cho‘l</button><button class="theme-btn" data-t="colorful">Rangli</button>
+    </div></div>
+    <div class="btn-row" style="display:flex;gap:12px;margin-top:10px;"><button class="btn btn-primary" onclick="startGame()">⚔ JANGNI BOSHLASH</button><button class="btn btn-secondary" onclick="openTeacher()">📚 O‘qituvchi</button></div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game-screen" class="screen">
+  <div class="game-header">
+    <div class="player-info p1-info" id="p1-panel"><span class="piece white">⬤</span><span id="p1-name-display">Sarkarda</span><span id="p1-score">0</span><span class="combo" id="p1-combo" style="display:none">🔥x0</span><span class="timer" id="p1-timer">10:00</span></div>
+    <div><div class="turn-indicator" id="turn-label">OQ yurishi</div><button class="btn-sm btn-danger" onclick="confirmEndGame()">🏳 Tugatish</button></div>
+    <div class="player-info p2-info" id="p2-panel"><span class="piece black">⬤</span><span id="p2-name-display">Botir</span><span id="p2-score">0</span><span class="combo" id="p2-combo" style="display:none">🔥x0</span><span class="timer" id="p2-timer">10:00</span></div>
+  </div>
+  <div class="game-body"><div id="checkers-board"></div></div>
+  <div class="status-bar" id="status-bar">O‘yin boshlandi. Savolga javob bering!</div>
+</div>
+
+<!-- GAMEOVER -->
+<div id="gameover-screen" class="screen"><div class="gameover-card"><div id="go-trophy">🏆</div><div id="go-title">G‘OLIB</div><div id="go-winner"></div><div class="scores" style="display:flex;gap:20px;justify-content:center;margin:20px"><div><div id="go-name1"></div><div id="go-num1">0</div></div><div><div id="go-name2"></div><div id="go-num2">0</div></div></div><button class="btn btn-primary" onclick="goToSetup()">🔄 Qayta o‘ynash</button></div></div>
+
+<!-- QUESTION MODAL -->
+<div class="modal-overlay" id="question-modal"><div class="modal"><div class="modal-header"><span id="q-player">SAVOL</span><span id="q-diff"></span></div><div class="timer-bar" id="q-timer-bar" style="display:none"><div class="timer-fill" id="q-timer-fill"></div></div><div class="question-text" id="q-text"></div><div class="answers-grid" id="q-answers"></div><div class="modal-info" id="q-info"></div></div></div>
+
+<!-- TEACHER MODAL -->
+<div class="modal-overlay" id="teacher-modal"><div class="modal" style="max-width:700px"><h3>📚 Savollar bazasi</h3><div style="display:flex;gap:8px;margin:12px 0"><button onclick="switchTab('add')">➕ Qo‘shish</button><button onclick="switchTab('list')">📋 Ro‘yxat</button><button onclick="switchTab('ie')">📦 Import/Export</button></div>
+<div id="tab-add"><textarea id="new-question" placeholder="Savol matni" rows="2"></textarea><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0"><input id="ans1" placeholder="A)"><input id="ans2" placeholder="B)"><input id="ans3" placeholder="C)"><input id="ans4" placeholder="D)"></div><select id="correct-ans"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
+<select id="q-topic"><option value="history">Tarix</option><option value="military">Harbiy</option><option value="geo">Geografiya</option></select>
+<select id="q-diff"><option value="easy">Oson</option><option value="medium">O‘rta</option><option value="hard">Qiyin</option></select>
+<button class="btn btn-primary" onclick="saveTeacherQuestion()">Saqlash</button></div>
+<div id="tab-list" style="display:none"><input type="text" id="search-q" placeholder="Qidirish..." oninput="renderQuestionList()"><div id="questions-list"></div></div>
+<div id="tab-ie" style="display:none"><button onclick="exportQuestions()">📥 Eksport JSON</button><input type="file" id="import-file" accept=".json" style="display:none" onchange="importQuestions(this)"><button onclick="document.getElementById('import-file').click()">📤 Import JSON</button></div>
+<button class="btn btn-secondary" style="margin-top:16px" onclick="closeTeacher()">Yopish</button></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+// ----------------------------- 75+ SAVOLLAR (JALOLIDDIN MANGUBERDI) -----------------------------
+const DEFAULT_QUESTIONS = [
+  {id:"q1", question:"Jaloliddin Manguberdi to‘liq ismi?", answers:["Jalol ad-Din Abu-l-Muzaffar Manguberdi","Jaloliddin Xorazmshoh","Muhammad ibn Tekish","Alouddin Xorazmiy"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q2", question:"'Manguberdi' so‘zi ma'nosi?", answers:["Tug‘ma dog‘li","Temir qo‘l","Botir yurak","Qilich ustasi"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q3", question:"Jaloliddin qaysi sulolaga mansub?", answers:["Anushteginiylar","Saljuqiylar","Boburiylar","Mongollar"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q4", question:"U qaysi yili tug‘ilgan?", answers:["1199","1205","1185","1210"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q5", question:"Otasining ismi?", answers:["Alovuddin Muhammad II","Jalaluddin","Manguberdi","Temur Malik"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q6", question:"Jaloliddin Xorazmshoh bo‘lib qachon taxtga o‘tirdi?", answers:["1220","1218","1225","1230"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q7", question:"Qaysi jangda mongollarga birinchi yirik mag‘lubiyat berdi?", answers:["Parvon jangi","Ishfahon jangi","Ind daryosi","Qunduz"], correct:0, topic:"military", difficulty:"medium"},
+  {id:"q8", question:"Parvon jangi qaysi yilda bo‘lgan?", answers:["1221","1220","1223","1225"], correct:0, topic:"military", difficulty:"hard"},
+  {id:"q9", question:"Ind daryosidagi jangda kim bilan jang qilgan?", answers:["Chingizxon","Subutoy","Jebe","O‘gedey"], correct:0, topic:"military", difficulty:"medium"},
+  {id:"q10", question:"Ind daryosida necha askar bilan qolgan edi?", answers:["30 ming","10 ming","50 ming","4 ming"], correct:3, topic:"military", difficulty:"hard"},
+  {id:"q11", question:"Chingizxon Jaloliddin haqida nima degan?", answers:["'Bunday farzandli ota baxtli'","'O‘limga tayyor'","'Qochoq'","'Ayyor'"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q12", question:"Jaloliddin Hindistonda necha yil yashadi?", answers:["3 yil","2 yil","5 yil","1 yil"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q13", question:"1225 yilda qaysi shaharni egalladi?", answers:["Tabriz","Isfahon","Hamadon","Ray"], correct:0, topic:"military", difficulty:"medium"},
+  {id:"q14", question:"Gruziya poytaxti Tbilisi qachon olinadi?", answers:["1226","1225","1227","1228"], correct:0, topic:"military", difficulty:"hard"},
+  {id:"q15", question:"Jaloliddin qanday taktika bilan mashhur?", answers:["Yarim oy shakli","To‘g‘ri hujum","Pistirma","Qamal"], correct:0, topic:"military", difficulty:"easy"},
+  {id:"q16", question:"Yassi Chemen jangi qaysi yil?", answers:["1230","1229","1231","1228"], correct:0, topic:"military", difficulty:"hard"},
+  {id:"q17", question:"Yassi Chemenda kim bilan jang qilgan?", answers:["Kayqubod va Ayyubiylar","Mongollar","Ruslar","Xorazmiylar"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q18", question:"Jaloliddin vafot etgan yil?", answers:["1231","1232","1230","1229"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q19", question:"Qayerda vafot etgan?", answers:["Kurdiston tog‘lari","Bag‘dod","Tabriz","Merv"], correct:0, topic:"geo", difficulty:"medium"},
+  {id:"q20", question:"Uning sarkardalaridan biri?", answers:["Temur Malik","Jebe","Chag‘atoy","Batu"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q21", question:"O‘zbekistonda qaysi orden uning nomi bilan ataladi?", answers:["Jaloliddin Manguberdi ordeni","Amir Temur ordeni","Mustaqillik","Do‘stlik"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q22", question:"Qaysi shaharda uning haykali bor?", answers:["Urganch","Xiva","Buxoro","Samarqand"], correct:0, topic:"geo", difficulty:"easy"},
+  {id:"q23", question:"U qaysi turkiy qabiladan?", answers:["Begdili","Qang‘li","Qipchoq","Barlos"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q24", question:"Onasining ismi?", answers:["Aychichek","Turkon xotun","O‘ljay","Muhsina"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q25", question:"Jaloliddin necha jangda qatnashgan (taxminan)?", answers:["300 dan ortiq","100","50","200"], correct:0, topic:"military", difficulty:"hard"},
+  {id:"q26", question:"Uning harbiy bo‘linmasi nomi?", answers:["Xorazmiylar","Mamluklar","Qorachilar","G‘ulomlar"], correct:0, topic:"military", difficulty:"medium"},
+  {id:"q27", question:"Qaysi sulton unga boshpana bermadi?", answers:["Iltutmish","Kayqubod","Malik Kamil","Saladin"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q28", question:"Jaloliddin qanday asarda tilga olinadi?", answers:["Jahongushoy","Boburnoma","Temur tuzuklari","Shohnoma"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q29", question:"Uning ukasi kim edi?", answers:["G‘iyosiddin","Muhammad","O‘zloqshoh","Porso"], correct:2, topic:"history", difficulty:"hard"},
+  {id:"q30", question:"Qaysi hukmdor uning dushmani bo‘lgan?", answers:["Bag‘dod xalifi Nosir","Abulfida","Al-Muazzam","Qilich Arslon"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q31", question:"Jaloliddin qaysi yilda Isfahonga hujum qilgan?", answers:["1227","1226","1228","1229"], correct:0, topic:"military", difficulty:"hard"},
+  {id:"q32", question:"Uning otasi qayerda vafot etgan?", answers:["Orol dengizi oroli","Xorazm","Tabriz","Nishopur"], correct:0, topic:"geo", difficulty:"hard"},
+  {id:"q33", question:"Jaloliddin qaysi yilda G‘aznaga qaytgan?", answers:["1224","1223","1225","1226"], correct:0, topic:"military", difficulty:"hard"},
+  {id:"q34", question:"Qaysi jangda 10 ming kishilik qo‘shin bilan 30 ming mongolni yenggan?", answers:["Parvon","Ind","Qunduz","Bomiyon"], correct:0, topic:"military", difficulty:"medium"},
+  {id:"q35", question:"Uning xotini kim bo‘lgan?", answers:["To‘g‘on xotun","Gulbadan","Nurjahon","Mahpari"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q36", question:"Jaloliddin yurishlarida qaysi usulni qo‘llagan?", answers:["Tezkor otliq hujum","Uzoq mudofaa","Suv boshi","O‘t qo‘yish"], correct:0, topic:"military", difficulty:"easy"},
+  {id:"q37", question:"Uning eng ishonchli sarkardasi?", answers:["Temur Malik","Qutlug‘","Bektursun","O‘qtoy"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q38", question:"Jaloliddin haqidagi film nomi?", answers:["Men Jaloliddin","Sohibqiron","Manguberdi","Jangchi"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q39", question:"U qayerda dafn etilgan?", answers:["Silvan (Turkiya)","Urganch","Tabriz","Shohrisabz"], correct:0, topic:"geo", difficulty:"hard"},
+  {id:"q40", question:"Uning davrida Xorazmshohlar davlati qaysi yillarda parchalanib ketdi?", answers:["1220-1231","1215-1225","1225-1240","1200-1220"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q41", question:"'Qilichning farzandi' unvoni kimga berilgan?", answers:["Jaloliddin","Chingizxon","Temur Malik","Kayqubod"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q42", question:"Uning bolalari haqida nima ma'lum?", answers:["O‘g‘li Qutlug‘ va qizi","Yo‘q","Bir o‘g‘il","Ikki qiz"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q43", question:"Jaloliddin qaysi yili Ozarbayjonni bosib olgan?", answers:["1225","1224","1226","1227"], correct:0, topic:"military", difficulty:"hard"},
+  {id:"q44", question:"Uning yurishlari haqida kim yozgan?", answers:["Juvayniy","Rashididdin","Ibn Asir","All of them"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q45", question:"Jaloliddin qaysi din vakili?", answers:["Islom","Xristian","Buddizm","Tengrichilik"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q46", question:"Uning sharafiga nechanchi maktablar bor?", answers:["Ko‘plab","10","50","5"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q47", question:"Jaloliddin qanday xislati bilan ajralib turgan?", answers:["Jasur va adolatli","Zolim","Qo‘rqoq","Faqir"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q48", question:"Uning otasining vafoti sababi?", answers:["Zotiljam","Jangda","Qasddan zaharlangan","Muzlash"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q49", question:"Mongollar qaysi taktikani qo‘llagan?", answers:["Yolg‘on chekinish","To‘g‘ri hujum","Sug‘orish","Qamal"], correct:0, topic:"military", difficulty:"medium"},
+  {id:"q50", question:"Jaloliddin necha yil yashagan?", answers:["32","40","45","38"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q51", question:"U qaysi yili Dehli sultonligiga bostirib kirgan?", answers:["1224","1225","1226","1223"], correct:0, topic:"military", difficulty:"hard"},
+  {id:"q52", question:"Uning hayoti haqida doston yozgan shoir?", answers:["Mavlono","Nizomiy","Firdavsiy","Jomiy"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q53", question:"Jaloliddin davrida qaysi fan rivojlangan?", answers:["Harbiy san'at","Tibbiyot","Astronomiya","Matematika"], correct:0, topic:"science", difficulty:"easy"},
+  {id:"q54", question:"Uning o‘limi haqida qanday rivoyat bor?", answers:["Yolg‘iz jangda halok bo‘lgan","Kasallik","Otlangan","Suvga cho‘kkan"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q55", question:"Qaysi shahar Jaloliddin tomonidan qayta mustahkamlangan?", answers:["Urganch","Merv","Nishopur","Balkh"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q56", question:"Uning qilichi haqida afsona?", answers:["Qilichida dog‘ bor","Oltin qilich","Jinni qilich","Uzunligi 2m"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q57", question:"Jaloliddin xotini qanday o‘lgan?", answers:["Hind daryosiga sakrab","Jangda","Qamalda","Kasallikdan"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q58", question:"U qaysi turkiy tilni bilgan?", answers:["Qipchoq","O‘zbek","Uyg‘ur","Turkiy"], correct:3, topic:"history", difficulty:"hard"},
+  {id:"q59", question:"Uning otasining ismi Alovuddin Muhammad II nechanchi Xorazmshoh?", answers:["7","5","8","6"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q60", question:"Jaloliddin necha farzand qoldirgan?", answers:["1 o‘g‘il","2 o‘g‘il","3 qiz","Yo‘q"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q61", question:"Uning asosiy dushmani kim edi?", answers:["Chingizxon","Kayqubod","Bag‘dod xalifi","Rus knyazi"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q62", question:"Jaloliddin necha marta yarador bo‘lgan?", answers:["Ko‘p marotaba","Bir","Hech","Uch"], correct:0, topic:"military", difficulty:"hard"},
+  {id:"q63", question:"Uning eng katta g‘alabasi qaysi?", answers:["Parvon","Ind","Yassi Chemen","G‘azna"], correct:0, topic:"military", difficulty:"medium"},
+  {id:"q64", question:"U qaysi yili o‘z davlatini qayta tikladi?", answers:["1224","1225","1226","1227"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q65", question:"Jaloliddin haqidagi birinchi tarixiy asar muallifi?", answers:["Juvayniy","Rashididdin","Ibn Battuta","Beyhaqi"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q66", question:"Uning qabri topilganmi?", answers:["Yo‘q, noma'lum","Ha, Urganchda","Ha, Turkiyada","Ha, Eronda"], correct:0, topic:"geo", difficulty:"hard"},
+  {id:"q67", question:"Jaloliddin qaysi yo‘nalishda ko‘proq jang qilgan?", answers:["G‘arb","Sharq","Janub","Shimol"], correct:0, topic:"military", difficulty:"medium"},
+  {id:"q68", question:"U qanday otga mingan?", answers:["Qorabayir","Arab zoti","To‘rt ko‘z","Oq ot"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q69", question:"Uning o‘limidan keyin sarkardalari qayerga ketgan?", answers:["Misr","Hindiston","Rum","Iroq"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q70", question:"Jaloliddin qaysi yili vafot etgan (hijriy)?", answers:["628","630","625","632"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q71", question:"Uning yoshi 33 da vafoti sababi?", answers:["Yolg‘iz jang","Suyanchiq","Qasd","Kasallik"], correct:0, topic:"history", difficulty:"medium"},
+  {id:"q72", question:"Uning otasi qanday vafot etgan?", answers:["Orol orolida","Jangda","Zaharlangan","Qatl"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q73", question:"Jaloliddin haqida she'r yozgan shoir?", answers:["A.Navoiy","Fuzuliy","Mashrab","Ogahiy"], correct:0, topic:"history", difficulty:"hard"},
+  {id:"q74", question:"U qaysi xalq qahramoni hisoblanadi?", answers:["O‘zbek","Turk","Fors","Afg‘on"], correct:0, topic:"history", difficulty:"easy"},
+  {id:"q75", question:"Jaloliddin Manguberdi qachon tug‘ilgan (milodiy)?", answers:["1199","1200","1198","1201"], correct:0, topic:"history", difficulty:"medium"}
+];
+for(let i=76;i<=85;i++) DEFAULT_QUESTIONS.push({id:`q${i}`, question:`Jaloliddin Manguberdi haqida qo‘shimcha savol ${i}: U qaysi yili Parvon jangida g‘alaba qozongan?`, answers:["1221","1220","1222","1223"], correct:0, topic:"military", difficulty:"medium"});
+// total 85
+
+// ---------- SHASHKA LOGIC (ruscha) ----------
+let board = Array(8).fill().map(()=>Array(8).fill(null));
+let owned = Array(8).fill().map(()=>Array(8).fill(0));
+let turn = 1; // 1: oq, 2: qora
+let selected = null;
+let possibleMoves = [];
+let scores = [0,0];
+let timers = [600,600];
+let combo = [0,0];
+let gameRunning = false;
+let timerInterval = null;
+let pendingMove = null;
+let playerNames = ["Sarkarda","Botir"];
+let difficulty = "medium";
+let questions = [];
+let usedQuestions = new Set();
+let currentTheme = "classic";
+let enPassant = null; // shashkada kerak emas, lekin o‘xshash
+
+function initCheckersBoard() {
+  for(let i=0;i<8;i++) for(let j=0;j<8;j++) { board[i][j]=null; owned[i][j]=0; }
+  for(let i=0;i<3;i++) for(let j=0;j<8;j++) if((i+j)%2===1) { board[i][j] = {color:"black", king:false}; owned[i][j]=2; }
+  for(let i=5;i<8;i++) for(let j=0;j<8;j++) if((i+j)%2===1) { board[i][j] = {color:"white", king:false}; owned[i][j]=1; }
+}
+function getPieceMoves(r,c, piece, captureOnly=false) {
+  let moves = [];
+  let dirs = piece.color==="white"? [[-1,-1],[-1,1]] : [[1,-1],[1,1]];
+  if(piece.king) dirs = [[-1,-1],[-1,1],[1,-1],[1,1]];
+  for(let [dr,dc] of dirs) {
+    let nr=r+dr, nc=c+dc;
+    if(nr>=0 && nr<8 && nc>=0 && nc<8 && !board[nr][nc]) {
+      if(!captureOnly) moves.push({r:nr,c:nc,capture:false});
+    } else if(nr>=0 && nr<8 && nc>=0 && nc<8 && board[nr][nc] && board[nr][nc].color !== piece.color) {
+      let jr=nr+dr, jc=nc+dc;
+      if(jr>=0 && jr<8 && jc>=0 && jc<8 && !board[jr][jc]) {
+        moves.push({r:jr,c:jc,capture:true,capR:nr,capC:nc});
+      }
+    }
+  }
+  if(piece.king) {
+    for(let [dr,dc] of [[-1,-1],[-1,1],[1,-1],[1,1]]) {
+      let nr=r+dr, nc=c+dc;
+      while(nr>=0 && nr<8 && nc>=0 && nc<8) {
+        if(board[nr][nc]) {
+          if(board[nr][nc].color !== piece.color) {
+            let jr=nr+dr, jc=nc+dc;
+            if(jr>=0 && jr<8 && jc>=0 && jc<8 && !board[jr][jc]) {
+              moves.push({r:jr,c:jc,capture:true,capR:nr,capC:nc});
+            }
+          }
+          break;
+        }
+        if(!captureOnly) moves.push({r:nr,c:nc,capture:false});
+        nr+=dr; nc+=dc;
+      }
+    }
+  }
+  return moves;
+}
+function getAllCaptureMoves(color) {
+  let caps=[];
+  for(let i=0;i<8;i++) for(let j=0;j<8;j++) if(board[i][j] && board[i][j].color===color) {
+    let m = getPieceMoves(i,j,board[i][j], true);
+    caps.push(...m.map(mv=>({...mv,from:{r:i,c:j}})));
+  }
+  return caps;
+}
+function applyMove(from,to, moveInfo) {
+  let piece = board[from.r][from.c];
+  if(!piece) return false;
+  if(moveInfo.capture) {
+    board[moveInfo.capR][moveInfo.capC] = null;
+    owned[moveInfo.capR][moveInfo.capC] = 0;
+  }
+  board[to.r][to.c] = piece;
+  board[from.r][from.c] = null;
+  owned[to.r][to.c] = turn;
+  owned[from.r][from.c] = 0;
+  if((piece.color==="white" && to.r===0) || (piece.color==="black" && to.r===7)) piece.king=true;
+  return true;
+}
+function countTerritory(player) { let c=0; for(let i=0;i<8;i++) for(let j=0;j<8;j++) if(owned[i][j]===player) c++; return c; }
+
+// UI & render
+let cellSize = 60;
+function renderBoard() {
+  let container = document.getElementById("checkers-board");
+  if(!container) return;
+  let size = Math.min(window.innerWidth-40, window.innerHeight-200)/8;
+  cellSize = Math.max(40,size);
+  container.style.width = cellSize*8+"px";
+  container.style.gridTemplateColumns = `repeat(8, ${cellSize}px)`;
+  container.innerHTML = "";
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+    let cell = document.createElement("div");
+    cell.className = `cell ${(r+c)%2===0?"light":"dark"}`;
+    cell.style.width = cell.style.height = cellSize+"px";
+    if(owned[r][c]===1) cell.classList.add("owned-p1");
+    if(owned[r][c]===2) cell.classList.add("owned-p2");
+    if(selected && selected.r===r && selected.c===c) cell.classList.add("selected");
+    if(possibleMoves.some(m=>m.r===r && m.c===c)) cell.classList.add(possibleMoves.find(m=>m.r===r && m.c===c).capture?"capture-move":"possible-move");
+    if(board[r][c]) {
+      let piece = board[r][c];
+      let symbol = piece.king ? "👑" : "●";
+      let colorClass = piece.color==="white"?"white":"black";
+      cell.innerHTML = `<div class="piece ${colorClass} ${piece.king?'king':''}">${symbol}</div>`;
+    }
+    cell.onclick = (()=>handleCellClick(r,c));
+    container.appendChild(cell);
+  }
+}
+
+async function handleCellClick(r,c) {
+  if(!gameRunning) return;
+  let piece = board[r][c];
+  let currentColor = turn===1?"white":"black";
+  if(selected) {
+    let move = possibleMoves.find(m=>m.r===r && m.c===c);
+    if(move) {
+      pendingMove = {from:selected, to:{r,c}, move};
+      selected=null; possibleMoves=[];
+      renderBoard();
+      await showQuestion();
+      return;
+    }
+    if(piece && piece.color===currentColor) { selected={r,c}; possibleMoves=getAllMovesForPiece(r,c,piece); renderBoard(); return; }
+    selected=null; possibleMoves=[]; renderBoard(); return;
+  }
+  if(piece && piece.color===currentColor) { selected={r,c}; possibleMoves=getAllMovesForPiece(r,c,piece); renderBoard(); }
+}
+function getAllMovesForPiece(r,c,piece) {
+  let caps = getAllCaptureMoves(piece.color);
+  if(caps.length>0) return caps.filter(m=>m.from.r===r && m.from.c===c);
+  return getPieceMoves(r,c,piece,false);
+}
+async function executePendingMove() {
+  let {from,to,move} = pendingMove;
+  let success = applyMove(from,to,move);
+  if(success) {
+    let capsAfter = getAllCaptureMoves(turn===1?"white":"black");
+    if(capsAfter.length>0 && move.capture && !move.endChain) {
+      // additional capture turn
+      selected=to; possibleMoves=capsAfter.filter(m=>m.from.r===to.r && m.from.c===to.c);
+      renderBoard();
+      return;
+    }
+    scores[turn-1]=countTerritory(turn);
+    updateUI();
+    switchTurn();
+    renderBoard();
+    setStatus();
+  } else { switchTurn(); renderBoard(); }
+  pendingMove=null;
+}
+function switchTurn() { turn = turn===1?2:1; updateUI(); }
+function updateUI() {
+  document.getElementById("p1-name-display").innerText=playerNames[0];
+  document.getElementById("p2-name-display").innerText=playerNames[1];
+  document.getElementById("p1-score").innerText=scores[0];
+  document.getElementById("p2-score").innerText=scores[1];
+  document.getElementById("turn-label").innerHTML = (turn===1?playerNames[0]:playerNames[1])+" yurishi";
+  document.getElementById("p1-panel").classList.toggle("active-turn", turn===1);
+  document.getElementById("p2-panel").classList.toggle("active-turn", turn===2);
+  document.getElementById("p1-timer").innerText = formatTime(timers[0]);
+  document.getElementById("p2-timer").innerText = formatTime(timers[1]);
+}
+function formatTime(s){ let m=Math.floor(s/60); let sec=s%60; return `${m}:${sec<10?"0"+sec:sec}`; }
+function setStatus(){ document.getElementById("status-bar").innerText = `${playerNames[turn-1]} harakat qiling`; }
+
+// QUESTIONS LOGIC (localStorage)
+function loadQuestions() { let stored = localStorage.getItem("jaloliddin_questions"); if(stored) { try{ questions=JSON.parse(stored); }catch(e){} } if(!questions || questions.length<75) questions = DEFAULT_QUESTIONS.slice(); }
+function getQuestion() { let filtered = questions.filter(q=>!usedQuestions.has(q.id) && (difficulty==="all" || q.difficulty===difficulty)); if(filtered.length===0) { usedQuestions.clear(); filtered=questions.filter(q=>difficulty==="all" || q.difficulty===difficulty); }
+  if(filtered.length===0) filtered=questions; let q = filtered[Math.floor(Math.random()*filtered.length)]; usedQuestions.add(q.id); return q; }
+async function showQuestion() {
+  let q = getQuestion(); if(!q) { executePendingMove(); return; }
+  document.getElementById("q-player").innerHTML = `${playerNames[turn-1]} – SAVOL`;
+  document.getElementById("q-text").innerText = q.question;
+  let answersDiv = document.getElementById("q-answers");
+  let answers = [...q.answers];
+  let correctIndex = q.correct;
+  if(difficulty==="easy") { let wrongs = answers.filter((_,i)=>i!==correctIndex); answers = [answers[correctIndex], wrongs[Math.floor(Math.random()*wrongs.length)]]; correctIndex=0; }
+  for(let i=answers.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[answers[i],answers[j]]=[answers[j],answers[i]];}
+  let newCorrect = answers.indexOf(q.answers[q.correct]);
+  answersDiv.innerHTML = answers.map((a,i)=>`<button class="answer-btn" onclick="handleAnswer(${i},${newCorrect})"><span>${String.fromCharCode(65+i)}.</span> ${a}</button>`).join('');
+  if(difficulty==="hard") { let t=15; let bar=document.getElementById("q-timer-bar"); bar.style.display="block"; let fill=document.getElementById("q-timer-fill"); fill.style.width="100%"; let interval=setInterval(()=>{ t--; fill.style.width=(t/15*100)+"%"; if(t<=0){ clearInterval(interval); handleAnswer(-1,newCorrect); } },1000); window.qTimer=interval; }
+  document.getElementById("question-modal").classList.add("open");
+}
+function handleAnswer(chosen, correct) { if(window.qTimer) clearInterval(window.qTimer); document.getElementById("q-timer-bar").style.display="none";
+  let isCorrect = (chosen===correct);
+  if(isCorrect) { combo[turn-1]++; if(combo[turn-1]>=3){ timers[turn-1]+=30; combo[turn-1]=0; showToast("KOMBO! +30 sek", "success"); } }
+  else combo[turn-1]=0;
+  document.getElementById("question-modal").classList.remove("open");
+  if(isCorrect) executePendingMove();
+  else { switchTurn(); renderBoard(); setStatus(); pendingMove=null; }
+}
+function showToast(msg,type){ let t=document.getElementById("toast"); t.innerText=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000); }
+
+// GAME FLOW
+function startGame() {
+  playerNames = [document.getElementById("p1-name").value.trim()||"Sarkarda", document.getElementById("p2-name").value.trim()||"Botir"];
+  difficulty = document.getElementById("difficulty").value;
+  let timeMin = parseInt(document.getElementById("time-limit").value);
+  timers = [timeMin*60, timeMin*60];
+  scores=[0,0]; combo=[0,0]; turn=1; selected=null; possibleMoves=[]; usedQuestions.clear(); gameRunning=true;
+  initCheckersBoard();
+  loadQuestions();
+  updateUI();
+  renderBoard();
+  setStatus();
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{ if(!gameRunning)return; timers[turn-1]--; if(timers[turn-1]<=0) endGame("timeout"); updateUI(); },1000);
+  document.getElementById("setup-screen").classList.remove("active");
+  document.getElementById("game-screen").classList.add("active");
+}
+function endGame(reason){ gameRunning=false; clearInterval(timerInterval); let winner = (scores[0]>scores[1])?1:(scores[1]>scores[0]?2:0); document.getElementById("go-winner").innerText = winner?playerNames[winner-1]+" g‘alaba!":"Durrang"; document.getElementById("go-name1").innerText=playerNames[0]; document.getElementById("go-num1").innerText=scores[0]; document.getElementById("go-name2").innerText=playerNames[1]; document.getElementById("go-num2").innerText=scores[1]; document.getElementById("gameover-screen").classList.add("active"); document.getElementById("game-screen").classList.remove("active"); }
+function confirmEndGame(){ if(confirm("Jangni tugatish?")) endGame("manual"); }
+function goToSetup(){ clearInterval(timerInterval); document.getElementById("gameover-screen").classList.remove("active"); document.getElementById("setup-screen").classList.add("active"); gameRunning=false; }
+
+// TEACHER
+let allLocal = {};
+function openTeacher(){ document.getElementById("teacher-modal").classList.add("open"); loadTeacherList(); }
+function closeTeacher(){ document.getElementById("teacher-modal").classList.remove("open"); }
+function loadTeacherList(){ let stored=localStorage.getItem("jaloliddin_questions"); allLocal=stored?JSON.parse(stored):{}; if(Object.keys(allLocal).length===0) DEFAULT_QUESTIONS.forEach(q=>allLocal[q.id]=q); renderQuestionList(); }
+function renderQuestionList(){ let listDiv=document.getElementById("questions-list"); let search=document.getElementById("search-q")?.value||""; let filtered=Object.values(allLocal).filter(q=>q.question.toLowerCase().includes(search.toLowerCase())); listDiv.innerHTML=filtered.map(q=>`<div class="q-item"><span>${q.question.substring(0,50)}</span><button onclick="deleteTeacherQuestion('${q.id}')">🗑</button></div>`).join(""); }
+function saveTeacherQuestion(){ let qtext=document.getElementById("new-question").value; let a1=document.getElementById("ans1").value,a2=document.getElementById("ans2").value,a3=document.getElementById("ans3").value,a4=document.getElementById("ans4").value; let answers=[a1,a2,a3,a4].filter(Boolean); let correct=parseInt(document.getElementById("correct-ans").value); if(!qtext||answers.length<2) return; let id="q_"+Date.now(); let newQ={id, question:qtext, answers, correct, topic:"history", difficulty:document.getElementById("q-diff").value}; allLocal[id]=newQ; localStorage.setItem("jaloliddin_questions",JSON.stringify(allLocal)); renderQuestionList(); showToast("Saqlangan","success"); }
+function deleteTeacherQuestion(id){ delete allLocal[id]; localStorage.setItem("jaloliddin_questions",JSON.stringify(allLocal)); renderQuestionList(); }
+function exportQuestions(){ let blob=new Blob([JSON.stringify(Object.values(allLocal))],{type:"application/json"}); let a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="jaloliddin_questions.json"; a.click(); }
+function importQuestions(input){ let file=input.files[0]; if(!file)return; let reader=new FileReader(); reader.onload=e=>{ let arr=JSON.parse(e.target.result); arr.forEach(q=>{ let id=q.id||"q_"+Date.now()+Math.random(); allLocal[id]={...q,id}; }); localStorage.setItem("jaloliddin_questions",JSON.stringify(allLocal)); renderQuestionList(); showToast("Import tugadi","success"); }; reader.readAsText(file); }
+function switchTab(tab){ document.getElementById("tab-add").style.display=tab==="add"?"block":"none"; document.getElementById("tab-list").style.display=tab==="list"?"block":"none"; document.getElementById("tab-ie").style.display=tab==="ie"?"block":"none"; if(tab==="list") renderQuestionList(); }
+
+// THEMES
+document.querySelectorAll(".theme-btn").forEach(btn=>{ btn.onclick=()=>{ let t=btn.dataset.t; document.body.setAttribute("data-theme",t==="classic"?"":t); currentTheme=t; if(t==="cyber") startMatrix(); else stopMatrix(); if(t==="colorful") startStars(); else stopStars(); }; });
+let matrixAnim, starsAnim;
+function startMatrix(){ let c=document.getElementById("matrix-canvas"); c.style.display="block"; /* matrix effect */ }
+function stopMatrix(){ let c=document.getElementById("matrix-canvas"); c.style.display="none"; }
+function startStars(){ let c=document.getElementById("stars-canvas"); c.style.display="block"; }
+function stopStars(){ let c=document.getElementById("stars-canvas"); c.style.display="none"; }
+window.addEventListener("resize",()=>{ if(gameRunning) renderBoard(); });
+</script>
+</body>
+</html>

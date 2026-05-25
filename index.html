@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Strategiya · Asosiy sahifa</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 10% 30%, #0a0c18, #010204);
+      font-family: 'Segoe UI', 'Cinzel', 'Rajdhani', system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    /* main hub card */
+    .hub-container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .hub-card {
+      background: rgba(12, 18, 34, 0.7);
+      backdrop-filter: blur(14px);
+      border-radius: 64px;
+      border: 1px solid rgba(201, 168, 76, 0.35);
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      padding: 48px 32px;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+
+    .hub-card:hover {
+      box-shadow: 0 30px 55px -15px black, 0 0 0 2px rgba(201, 168, 76, 0.4) inset;
+    }
+
+    /* emblem animation */
+    .emblem {
+      font-size: 5rem;
+      filter: drop-shadow(0 0 16px #c9a84c);
+      animation: float 3s ease-in-out infinite;
+      display: inline-block;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+      100% { transform: translateY(0px); }
+    }
+
+    h1 {
+      font-family: 'Cinzel Decorative', 'Cinzel', serif;
+      font-size: clamp(2rem, 7vw, 3.8rem);
+      background: linear-gradient(135deg, #ecd78b, #c9a84c, #f3e2a0);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: 0.02em;
+      margin: 16px 0 8px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #a0b3d9;
+      border-top: 1px dashed rgba(201, 168, 76, 0.3);
+      display: inline-block;
+      padding-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    .author {
+      font-size: 0.9rem;
+      color: #8d9dcc;
+      margin-bottom: 40px;
+      font-style: italic;
+    }
+
+    /* game buttons row */
+    .games-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 32px;
+      margin: 30px 0 40px;
+    }
+
+    .game-link {
+      background: rgba(5, 8, 18, 0.85);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(201, 168, 76, 0.5);
+      border-radius: 48px;
+      padding: 28px 32px;
+      width: 260px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .game-link:hover {
+      transform: translateY(-8px);
+      border-color: #c9a84c;
+      background: rgba(201, 168, 76, 0.1);
+      box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px #c9a84c inset;
+    }
+
+    .game-icon {
+      font-size: 3.8rem;
+      display: block;
+    }
+
+    .game-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #ecd78b;
+      letter-spacing: 0.05em;
+    }
+
+    .game-desc {
+      font-size: 0.75rem;
+      color: #b9c7e8;
+      text-align: center;
+    }
+
+    /* info panel */
+    .info-panel {
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 60px;
+      padding: 16px 24px;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #c9d4ff;
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      display: inline-block;
+      width: auto;
+      max-width: 90%;
+    }
+
+    .info-panel p {
+      margin: 6px 0;
+    }
+
+    .highlight {
+      color: #f5cd6d;
+      font-weight: bold;
+    }
+
+    /* responsive */
+    @media (max-width: 620px) {
+      .hub-card {
+        padding: 32px 20px;
+      }
+      .game-link {
+        width: 220px;
+        padding: 20px 16px;
+      }
+      .game-icon {
+        font-size: 3rem;
+      }
+      .game-title {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="hub-container">
+  <div class="hub-card">
+    <div class="emblem">⚔️♛</div>
+    <h1>STRATEGIYA<br><span style="font-size:0.45em;">Harbiy Intellekt Dueli</span></h1>
+    <div class="subtitle">Bilim · Taktika · Hudud</div>
+    <div class="author">Muallif: Akmalov Bositxon</div>
+
+    <div class="games-row">
+      <!-- Chess button -->
+      <a href="shaxmat/index.html" class="game-link" id="chess-btn">
+        <div class="game-icon">♔♛</div>
+        <div class="game-title">SHAXMAT</div>
+        <div class="game-desc">Klassik shaxmat + savol-javob<br>hudud nazorati, 5 ta mavzu</div>
+      </a>
+
+      <!-- Checkers button -->
+      <a href="shashka/index.html" class="game-link" id="checkers-btn">
+        <div class="game-icon">⬤◉</div>
+        <div class="game-title">SHASHKA</div>
+        <div class="game-desc">Tezkor shashka<br>Jaloliddin Manguberdi savollari</div>
+      </a>
+    </div>
+
+    <div class="info-panel">
+      <p>🎯 <span class="highlight">Qanday ishlaydi?</span> Har bir yurishdan oldin harbiy-tarixiy savol. To‘g‘ri javob → yurish bajariladi, noto‘g‘ri → navbat raqibga o‘tadi.</p>
+      <p>🔥 <span class="highlight">Kombo tizimi:</span> 3 ta to‘g‘ri javob → qo‘shimcha +30 soniya!</p>
+      <p>👨‍🏫 O‘qituvchi rejimi — savollar bazasini tahrirlash, import/eksport qilish.</p>
+    </div>
+  </div>
+</div>
+
+<!-- optional: small script to ensure links open in same tab (default) -->
+<script>
+  // just to make sure the links keep the same target, no extra magic.
+  console.log("Hub ready — navigate to chess.html or checkers.html");
+</script>
+</body>
+</html>

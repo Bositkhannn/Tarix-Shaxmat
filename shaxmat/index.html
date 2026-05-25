@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRATEGIYA – Harbiy Intellekt Dueli</title>
+
+<!-- Firebase Compat CDN (global scope, no import needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+  // Firebase konfiguratsiyasi (to‘g‘ri nom)
+const firebaseConfig = {
+  apiKey: "AIzaSyBZy93EZX4LFl8yU904Nvi_yrxZ-JWmtwI",
+  authDomain: "tarixiy-shaxmat.firebaseapp.com",
+  databaseURL: "https://tarixiy-shaxmat-default-rtdb.firebaseio.com",
+  projectId: "tarixiy-shaxmat",
+  storageBucket: "tarixiy-shaxmat.firebasestorage.app",
+  messagingSenderId: "606869355715",
+  appId: "1:606869355715:web:a155e55aae339f8760b676",
+  measurementId: "G-KTRX0RYZS6"
+};
+
+var _fbApp = null;
+var _fbDb  = null;
+var _fbQRef = null;
+var _firebaseReady = false;
+
+try {
+  // Compat usulda Firebase’ni ishga tushirish
+  _fbApp = firebase.initializeApp(firebaseConfig);
+  _fbDb = firebase.database();
+  _fbQRef = _fbDb.ref('questions');
+  _firebaseReady = true;
+  console.log("Firebase ulandi!");
+} catch(e) {
+  console.warn("Firebase ulanmadi, localStorage ishlatiladi:", e.message);
+}
+
+// Global yordamchi funksiyalar
+window.fbReady = function() { return _firebaseReady; };
+
+window.fbLoadQuestions = async function() {
+  if (!_firebaseReady) return null;
+  try {
+    var snap = await _fbQRef.once('value');
+    return snap.exists() ? snap.val() : {};
+  } catch(e) { return null; }
+};
+
+window.fbSaveQuestion = async function(id, question) {
+  if (!_firebaseReady) return false;
+  try {
+    await _fbDb.ref('questions/' + id).set(question);
+    return true;
+  } catch(e) { return false; }
+};
+
+window.fbDeleteQuestion = async function(id) {
+  if (!_firebaseReady) return false;
+  try {
+    await _fbDb.ref('questions/' + id).remove();
+    return true;
+  } catch(e) { return false; }
+};
+
+window.fbListenQuestions = function(callback) {
+  if (!_firebaseReady) return;
+  _fbQRef.on('value', function(snap) {
+    callback(snap.exists() ? snap.val() : {});
+  });
+};
+
+
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+/* ===== CSS VARIABLES & THEMES ===== */
+:root {
+  --bg: #0a0c10;
+  --surface: #111520;
+  --surface2: #1a2035;
+  --border: #2a3a5c;
+  --accent: #c9a84c;
+  --accent2: #e8c87a;
+  --red: #c0392b;
+  --blue: #1a6ea8;
+  --white-piece: #e8dcc8;
+  --black-piece: #1a1a2e;
+  --text: #d4c9b8;
+  --text2: #8899aa;
+  --glow: rgba(201,168,76,0.3);
+  --cell-light: #c8b89a;
+  --cell-dark: #6b4c2a;
+  --cell-owned1: rgba(30,100,200,0.45);
+  --cell-owned2: rgba(180,30,30,0.45);
+  --cell-possible: rgba(201,168,76,0.35);
+  --cell-selected: rgba(201,168,76,0.6);
+  --font-title: 'Cinzel Decorative', serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --transition: 0.25s ease;
+}
+
+[data-theme="academy"] {
+  --bg: #0d1b0d;
+  --surface: #112211;
+  --surface2: #1a3020;
+  --border: #2a5a3a;
+  --accent: #4caf7a;
+  --accent2: #7adf9a;
+  --glow: rgba(76,175,122,0.3);
+  --cell-light: #b8d4b0;
+  --cell-dark: #2a5a2a;
+  --cell-owned1: rgba(30,160,80,0.45);
+  --cell-owned2: rgba(180,80,30,0.45);
+}
+
+[data-theme="cyber"] {
+  --bg: #050510;
+  --surface: #080820;
+  --surface2: #0d0d30;
+  --border: #1a1a6a;
+  --accent: #00ffff;
+  --accent2: #ff00ff;
+  --glow: rgba(0,255,255,0.35);
+  --cell-light: #1a1a3a;
+  --cell-dark: #0a0a1a;
+  --cell-owned1: rgba(0,200,255,0.5);
+  --cell-owned2: rgba(255,0,200,0.5);
+  --text: #c0e0ff;
+}
+
+[data-theme="desert"] {
+  --bg: #1a1006;
+  --surface: #251808;
+  --surface2: #35220a;
+  --border: #6a4a1a;
+  --accent: #f0a030;
+  --accent2: #ffd060;
+  --glow: rgba(240,160,48,0.3);
+  --cell-light: #e0c080;
+  --cell-dark: #8a5820;
+  --cell-owned1: rgba(30,120,200,0.45);
+  --cell-owned2: rgba(200,60,30,0.45);
+  --text: #f0d8a0;
+}
+
+[data-theme="colorful"] {
+  --bg: #0a0520;
+  --surface: #120830;
+  --surface2: #1e0f45;
+  --border: #5a2a8a;
+  --accent: #ff6b9d;
+  --accent2: #ffb347;
+  --glow: rgba(255,107,157,0.35);
+  --cell-light: #d4a8f0;
+  --cell-dark: #5a2a8a;
+  --cell-owned1: rgba(100,200,255,0.5);
+  --cell-owned2: rgba(255,100,150,0.5);
+  --text: #ffe0f8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Matrix rain for cyber theme */
+#matrix-canvas {
+  display: none;
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  opacity: 0.07;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="cyber"] #matrix-canvas { display: block; }
+
+/* Stars for colorful theme */
+#stars-canvas {
+  display: none;
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="colorful"] #stars-canvas { display: block; }
+
+/* ===== SCREENS ===== */
+.screen {
+  display: none;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+.screen.active { display: flex; flex-direction: column; }
+
+/* ===== SETUP SCREEN ===== */
+#setup-screen {
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: radial-gradient(ellipse at center, var(--surface2) 0%, var(--bg) 70%);
+}
+
+.setup-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 700px;
+  width: 100%;
+  box-shadow: 0 0 60px var(--glow), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.game-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.game-logo h1 {
+  font-family: var(--font-title);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 30px var(--glow), 0 0 60px var(--glow);
+  line-height: 1.1;
+}
+.game-logo p {
+  font-family: var(--font-mono);
+  color: var(--text2);
+  font-size: 0.85rem;
+  letter-spacing: 0.25em;
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+
+.players-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.player-setup {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.player-setup label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text2);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.player-setup.p1 label { color: #6ab0ff; }
+.player-setup.p2 label { color: #ff7070; }
+
+input[type="text"] {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color var(--transition);
+}
+input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.option-group label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text2);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition: border-color var(--transition);
+}
+select:focus { border-color: var(--accent); }
+
+.theme-selector {
+  margin-bottom: 20px;
+}
+.theme-selector > label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text2);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.themes-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.theme-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all var(--transition);
+  letter-spacing: 0.05em;
+}
+.theme-btn:hover { transform: translateY(-2px); }
+.theme-btn.active { border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
+.theme-btn[data-t="classic"] { background: #1a2035; color: #c9a84c; }
+.theme-btn[data-t="academy"] { background: #112211; color: #4caf7a; }
+.theme-btn[data-t="cyber"] { background: #080820; color: #00ffff; }
+.theme-btn[data-t="desert"] { background: #251808; color: #f0a030; }
+.theme-btn[data-t="colorful"] { background: #120830; color: #ff6b9d; }
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.btn {
+  padding: 14px 28px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);
+  pointer-events: none;
+}
+.btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #0a0c10;
+  flex: 1;
+  font-size: 1.05rem;
+  box-shadow: 0 4px 20px var(--glow);
+}
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-danger {
+  background: linear-gradient(135deg, #c0392b, #e74c3c);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(192,57,43,0.4);
+}
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+}
+
+/* ===== GAME SCREEN ===== */
+#game-screen {
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 2px solid transparent;
+  transition: all var(--transition);
+  min-width: 0;
+}
+.player-info.active-turn {
+  border-color: var(--accent);
+  box-shadow: 0 0 15px var(--glow);
+}
+.player-info.p1-info { border-left: 3px solid #6ab0ff; }
+.player-info.p2-info { border-left: 3px solid #ff7070; }
+
+.player-color-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+.p1-dot { background: #d4c9b8; }
+.p2-dot { background: #1a1a2e; border-color: #555; }
+
+.player-name {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+.player-score-badge {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.player-timer {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent2);
+  white-space: nowrap;
+  min-width: 55px;
+  text-align: right;
+}
+.player-timer.warning { color: #e74c3c; animation: timerPulse 0.8s infinite; }
+@keyframes timerPulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+.combo-badge {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #000;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  margin-left: 4px;
+}
+
+.header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.turn-indicator {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--text2);
+  text-transform: uppercase;
+}
+.header-btns {
+  display: flex;
+  gap: 6px;
+}
+
+/* ===== BOARD AREA ===== */
+.game-body {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.board-wrapper {
+  position: relative;
+  display: flex;
+  gap: 0;
+}
+
+.board-labels-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text2);
+}
+.board-labels-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 4px 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text2);
+}
+
+#chess-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  border: 2px solid var(--border);
+  box-shadow: 0 0 40px var(--glow), 0 8px 40px rgba(0,0,0,0.6);
+  border-radius: 4px;
+  overflow: hidden;
+  /* size set by JS */
+}
+
+.cell {
+  position: relative;
+  cursor: pointer;
+  transition: filter 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.cell.light { background: var(--cell-light); }
+.cell.dark  { background: var(--cell-dark); }
+
+.cell.owned-p1::after,
+.cell.owned-p2::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.cell.owned-p1::after { background: var(--cell-owned1); }
+.cell.owned-p2::after { background: var(--cell-owned2); }
+
+.cell.selected::before { background: var(--cell-selected); opacity: 1; }
+.cell.possible-move::before { background: var(--cell-possible); opacity: 1; }
+.cell.possible-move::after {
+  content: '';
+  position: absolute;
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.7;
+  z-index: 3;
+}
+.cell.capture-move::before { background: rgba(200,50,50,0.35); opacity: 1; }
+.cell.in-check { animation: checkFlash 0.4s ease 3; }
+@keyframes checkFlash { 0%,100% { background: var(--cell-light); } 50% { background: rgba(220,50,50,0.7); } }
+
+.piece {
+  position: relative;
+  z-index: 2;
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+  transition: transform 0.15s;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+}
+.cell:hover .piece { transform: scale(1.08); }
+.cell.selected .piece { transform: scale(1.12); filter: drop-shadow(0 3px 8px var(--accent)) drop-shadow(0 0 12px var(--glow)); }
+
+/* Fallback text pieces */
+.piece-text {
+  position: relative;
+  z-index: 2;
+  font-size: min(7vw, 7vh, 55px);
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  transition: transform 0.15s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+.piece-text.white { color: var(--white-piece); }
+.piece-text.black { color: var(--black-piece); text-shadow: 0 0 2px rgba(255,255,255,0.4), 0 1px 3px rgba(0,0,0,0.9); }
+
+/* ===== QUESTION MODAL ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 560px;
+  width: 100%;
+  box-shadow: 0 0 60px var(--glow), 0 20px 60px rgba(0,0,0,0.6);
+  animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modalIn { from { transform: scale(0.85) translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.modal-title {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+.question-timer-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.question-timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 3px;
+  transition: width 0.1s linear;
+  width: 100%;
+}
+
+.question-text {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--surface2);
+  border-radius: 10px;
+  border-left: 3px solid var(--accent);
+}
+
+.answers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.answer-btn {
+  padding: 12px 16px;
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition);
+  position: relative;
+}
+.answer-btn:hover { border-color: var(--accent); background: var(--bg); transform: translateY(-1px); }
+.answer-btn.correct { background: rgba(46,160,67,0.3); border-color: #2ea043; color: #7ee787; }
+.answer-btn.wrong { background: rgba(192,57,43,0.3); border-color: #c0392b; color: #ff7070; }
+.answer-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+
+.answer-letter {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  background: var(--accent);
+  color: #000;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 22px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.modal-info {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text2);
+  text-align: center;
+}
+
+/* ===== GAME OVER SCREEN ===== */
+#gameover-screen {
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: radial-gradient(ellipse at center, var(--surface2) 0%, var(--bg) 70%);
+}
+
+.gameover-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 48px 40px;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 80px var(--glow);
+  animation: modalIn 0.4s ease;
+}
+.gameover-trophy {
+  font-size: 5rem;
+  margin-bottom: 16px;
+  animation: trophyBounce 1s ease infinite alternate;
+}
+@keyframes trophyBounce { from { transform: scale(1); } to { transform: scale(1.1) rotate(5deg); } }
+.gameover-title {
+  font-family: var(--font-title);
+  font-size: 2rem;
+  color: var(--accent);
+  text-shadow: 0 0 30px var(--glow);
+  margin-bottom: 8px;
+}
+.gameover-winner {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--text);
+}
+.gameover-scores {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+.score-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 24px;
+  flex: 1;
+}
+.score-box .score-name { font-size: 0.85rem; color: var(--text2); margin-bottom: 4px; }
+.score-box .score-num { font-family: var(--font-mono); font-size: 2rem; color: var(--accent); }
+.score-box.winner-box { border-color: var(--accent); box-shadow: 0 0 20px var(--glow); }
+
+/* ===== TEACHER MODAL ===== */
+#teacher-modal .modal {
+  max-width: 760px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.teacher-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.tab-btn {
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  transition: all var(--transition);
+}
+.tab-btn.active { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.question-form {
+  display: grid;
+  gap: 12px;
+}
+.form-row {
+  display: grid;
+  gap: 8px;
+}
+.form-row label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+}
+textarea:focus { border-color: var(--accent); }
+.answers-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.correct-answer-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.correct-answer-row label { min-width: 120px; }
+
+.question-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.q-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.q-item-text { flex: 1; font-size: 0.9rem; }
+.q-item-meta { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text2); }
+.q-item-del {
+  background: none;
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+.q-item-del:hover { background: rgba(192,57,43,0.2); }
+
+.import-export-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ===== STATUS BAR ===== */
+.status-bar {
+  padding: 6px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text2);
+  letter-spacing: 0.1em;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  z-index: 200;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  max-width: 350px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.success { border-color: #2ea043; color: #7ee787; }
+.toast.error { border-color: #c0392b; color: #ff7070; }
+.toast.info { border-color: var(--accent); color: var(--accent); }
+
+/* ===== CYBER GLOW ===== */
+[data-theme="cyber"] .cell.selected .piece { filter: drop-shadow(0 0 8px cyan) drop-shadow(0 0 16px cyan); }
+[data-theme="cyber"] .game-logo h1 { color: #00ffff; text-shadow: 0 0 20px cyan, 0 0 40px cyan; }
+[data-theme="cyber"] .btn-primary { background: linear-gradient(135deg, #00ffff, #0088ff); color: #000; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .setup-card { padding: 24px 16px; }
+  .players-row { grid-template-columns: 1fr; }
+  .options-grid { grid-template-columns: 1fr 1fr; }
+  .game-header { flex-wrap: wrap; gap: 6px; }
+  .player-info { min-width: calc(50% - 30px); }
+  .answers-grid { grid-template-columns: 1fr; }
+  .gameover-scores { flex-direction: column; align-items: center; }
+  .modal { padding: 20px; }
+  .answers-form-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 400px) {
+  .options-grid { grid-template-columns: 1fr; }
+}
+
+/* Back to Hub button - only visible on setup screen */
+.back-to-hub {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--accent, #c9a84c);
+  border-radius: 40px;
+  padding: 8px 18px;
+  font-family: var(--font-body, 'Segoe UI', sans-serif);
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--accent, #c9a84c);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.back-to-hub:hover {
+  background: rgba(201, 168, 76, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 0 12px rgba(201, 168, 76, 0.4);
+}
+</style>
+</head>
+<body>
+  <a href="../index.html" class="back-to-hub" id="backToHubBtn">← Asosiy menyu</a>
+
+<canvas id="matrix-canvas"></canvas>
+<canvas id="stars-canvas"></canvas>
+
+<!-- ========== SETUP SCREEN ========== -->
+<div id="setup-screen" class="screen active">
+  <div class="setup-card">
+    <div class="game-logo">
+      <h1>STRATEGIYA</h1>
+      <p>⚔ Harbiy Intellekt Dueli ⚔</p>
+      <br>
+      <p>Muallif: Akmalov Bositxon</p>
+    </div>
+
+    <div class="players-row">
+      <div class="player-setup p1">
+        <label>⬜ 1-Oʻyinchi (Oq)</label>
+        <input type="text" id="p1-name" value="General" placeholder="Ismingiz..." maxlength="20">
+      </div>
+      <div class="player-setup p2">
+        <label>⬛ 2-Oʻyinchi (Qora)</label>
+        <input type="text" id="p2-name" value="Marshal" placeholder="Ismingiz..." maxlength="20">
+      </div>
+    </div>
+
+    <div class="options-grid">
+      <div class="option-group">
+        <label>Qiyinchilik</label>
+        <select id="difficulty">
+          <option value="easy">🟢 Oson</option>
+          <option value="medium" selected>🟡 O'rta</option>
+          <option value="hard">🔴 Qiyin</option>
+        </select>
+      </div>
+      <div class="option-group">
+        <label>Vaqt (daqiqa)</label>
+        <select id="time-limit">
+          <option value="5">5 daqiqa</option>
+          <option value="10" selected>10 daqiqa</option>
+          <option value="15">15 daqiqa</option>
+          <option value="20">20 daqiqa</option>
+        </select>
+      </div>
+      <div class="option-group">
+        <label>Mavzu</label>
+        <select id="question-topic">
+          <option value="all">🌐 Barchasi</option>
+          <option value="history">🏛 Tarix</option>
+          <option value="military">⚔ Harbiy</option>
+          <option value="geo">🗺 Geografiya</option>
+          <option value="science">🔬 Fan</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="theme-selector">
+      <label>Vizual Mavzu</label>
+      <div class="themes-row">
+        <button class="theme-btn active" data-t="classic">⚔ Klassika</button>
+        <button class="theme-btn" data-t="academy">🎓 Akademiya</button>
+        <button class="theme-btn" data-t="cyber">💻 Kiberfazo</button>
+        <button class="theme-btn" data-t="desert">🏜 Choʻl</button>
+        <button class="theme-btn" data-t="colorful">🌈 Rang-barang</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="startGame()">⚔ Jangni Boshlash</button>
+      <button class="btn btn-secondary" onclick="openTeacher()">📚 O'qituvchi Rejimi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== GAME SCREEN ========== -->
+<div id="game-screen" class="screen">
+  <div class="game-header">
+    <div class="player-info p1-info active-turn" id="p1-panel">
+      <div class="player-color-dot p1-dot"></div>
+      <div class="player-name" id="p1-display">General</div>
+      <div class="player-score-badge" id="p1-score">0 kat.</div>
+      <span class="combo-badge" id="p1-combo" style="display:none">🔥x0</span>
+      <div class="player-timer" id="p1-timer">10:00</div>
+    </div>
+
+    <div class="header-center">
+      <div class="turn-indicator" id="turn-label">OQ YURADI</div>
+      <div class="header-btns">
+        <button class="btn btn-sm btn-secondary" onclick="openTeacher()">📚</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmEndGame()">🏳 Tugatish</button>
+      </div>
+    </div>
+
+    <div class="player-info p2-info" id="p2-panel">
+      <div class="player-color-dot p2-dot"></div>
+      <div class="player-name" id="p2-display">Marshal</div>
+      <div class="player-score-badge" id="p2-score">0 kat.</div>
+      <span class="combo-badge" id="p2-combo" style="display:none">🔥x0</span>
+      <div class="player-timer" id="p2-timer">10:00</div>
+    </div>
+  </div>
+
+  <div class="game-body">
+    <div class="board-wrapper">
+      <div class="board-labels-col" id="rank-labels"></div>
+      <div>
+        <div id="chess-board"></div>
+        <div class="board-labels-row" id="file-labels"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar" id="status-bar">O'yin boshlanmoqda...</div>
+</div>
+
+<!-- ========== GAME OVER SCREEN ========== -->
+<div id="gameover-screen" class="screen">
+  <div class="gameover-card">
+    <div class="gameover-trophy" id="go-trophy">🏆</div>
+    <div class="gameover-title" id="go-title">G'OLIB!</div>
+    <div class="gameover-winner" id="go-winner">General g'alaba qozondi!</div>
+    <div class="gameover-scores">
+      <div class="score-box" id="go-score1">
+        <div class="score-name" id="go-name1">General</div>
+        <div class="score-num" id="go-num1">0</div>
+      </div>
+      <div class="score-box" id="go-score2">
+        <div class="score-name" id="go-name2">Marshal</div>
+        <div class="score-num" id="go-num2">0</div>
+      </div>
+    </div>
+    <div class="btn-row" style="justify-content:center;gap:12px">
+      <button class="btn btn-primary" onclick="goToSetup()">🔄 Qayta O'ynash</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== QUESTION MODAL ========== -->
+<div class="modal-overlay" id="question-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="q-player-label">SAVOL</span>
+      <span id="q-difficulty-badge" style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text2)"></span>
+    </div>
+    <div class="question-timer-bar" id="q-timer-bar" style="display:none">
+      <div class="question-timer-fill" id="q-timer-fill"></div>
+    </div>
+    <div class="question-text" id="q-text">Savol matni...</div>
+    <div class="answers-grid" id="q-answers"></div>
+    <div class="modal-info" id="q-info"></div>
+  </div>
+</div>
+
+<!-- ========== TEACHER MODAL ========== -->
+<div class="modal-overlay" id="teacher-modal">
+  <div class="modal" style="max-width:760px;max-height:90vh;overflow-y:auto">
+    <div class="modal-header">
+      <span class="modal-title">📚 O'QITUVCHI REJIMI</span>
+      <button class="btn btn-sm btn-secondary" onclick="closeTeacher()">✕ Yopish</button>
+    </div>
+    <div class="teacher-tabs">
+      <button class="tab-btn active" onclick="switchTab('add')">➕ Savol Qo'shish</button>
+      <button class="tab-btn" onclick="switchTab('list')">📋 Savollar Ro'yxati</button>
+      <button class="tab-btn" onclick="switchTab('ie')">📦 Import/Eksport</button>
+    </div>
+
+    <!-- ADD TAB -->
+    <div class="tab-content active" id="tab-add">
+      <div class="question-form">
+        <div class="form-row">
+          <label>Savol matni *</label>
+          <textarea id="f-question" placeholder="Savol matnini kiriting..."></textarea>
+        </div>
+        <div class="form-row">
+          <label>Javob variantlari (kamida 2 ta)</label>
+          <div class="answers-form-grid">
+            <input type="text" id="f-a1" placeholder="A) 1-variant">
+            <input type="text" id="f-a2" placeholder="B) 2-variant">
+            <input type="text" id="f-a3" placeholder="C) 3-variant (ixtiyoriy)">
+            <input type="text" id="f-a4" placeholder="D) 4-variant (ixtiyoriy)">
+          </div>
+        </div>
+        <div class="form-row correct-answer-row">
+          <label>To'g'ri javob *</label>
+          <select id="f-correct" style="flex:1">
+            <option value="0">A) 1-variant</option>
+            <option value="1">B) 2-variant</option>
+            <option value="2">C) 3-variant</option>
+            <option value="3">D) 4-variant</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Mavzu</label>
+          <select id="f-topic">
+            <option value="history">🏛 Tarix</option>
+            <option value="military">⚔ Harbiy</option>
+            <option value="geo">🗺 Geografiya</option>
+            <option value="science">🔬 Fan</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Qiyinchilik</label>
+          <select id="f-difficulty">
+            <option value="easy">🟢 Oson</option>
+            <option value="medium">🟡 O'rta</option>
+            <option value="hard">🔴 Qiyin</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="saveQuestion()">💾 Savolni Saqlash</button>
+      </div>
+    </div>
+
+    <!-- LIST TAB -->
+    <div class="tab-content" id="tab-list">
+      <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+        <input type="text" id="q-search" placeholder="Savollarni qidiring..." style="flex:1" oninput="renderQuestionList()">
+        <span id="q-count" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text2);white-space:nowrap"></span>
+      </div>
+      <div class="question-list" id="q-list"></div>
+    </div>
+
+    <!-- IMPORT/EXPORT TAB -->
+    <div class="tab-content" id="tab-ie">
+      <div class="import-export-area">
+        <div>
+          <p style="margin-bottom:8px;color:var(--text2)">Barcha savollarni JSON formatida eksport qiling:</p>
+          <button class="btn btn-secondary" onclick="exportQuestions()">📥 JSON Eksport</button>
+        </div>
+        <div>
+          <p style="margin-bottom:8px;color:var(--text2)">JSON fayldan savollarni import qiling:</p>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importQuestions(this)">
+          <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📤 JSON Import</button>
+        </div>
+        <div>
+          <p style="margin-bottom:8px;color:var(--text2);font-size:0.85rem;">JSON format namunasi:</p>
+          <pre style="background:var(--bg);padding:12px;border-radius:8px;font-size:0.75rem;color:var(--text2);overflow:auto">[
+  {
+    "question": "Savol matni?",
+    "answers": ["A javob", "B javob", "C javob", "D javob"],
+    "correct": 0,
+    "topic": "history",
+    "difficulty": "medium"
+  }
+]</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONSTANTS & DEFAULT QUESTIONS
+// ============================================================
+const DEFAULT_QUESTIONS = [
+
+  // ===== OSON (easy) =====
+  { id:'q1',  question:"Amir Temur qaysi yili tug'ilgan?", answers:["1336","1320","1350","1370"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q2',  question:"Amir Temur qayerda tug'ilgan?", answers:["Kesh (Shahrisabz)","Samarqand","Buxoro","Termiz"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q3',  question:"Amir Temur poytaxtini qaysi shahar qildi?", answers:["Samarqand","Buxoro","Kesh","Balx"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q4',  question:"Amir Temur qaysi yili vafot etgan?", answers:["1405","1400","1410","1395"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q5',  question:"Amir Temur qayerda vafot etdi?", answers:["O'tror","Samarqand","Buxoro","Urganch"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q6',  question:"Temuriylar davlatining rasmiy nomi nima edi?", answers:["Temuriylar imperiyasi","Chig'atoy ulusi","Mo'g'uliston","Xuroson davlati"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q7',  question:"Amir Temur o'z saltanatini qaysi qabilaga mansub bo'lib tuzgan?", answers:["Barlos qabilasi","Qo'ng'irot","Jaloir","Nayman"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q8',  question:"Amir Temur yozdirib qoldirgan asosiy qonunlar to'plami qanday ataladi?", answers:["Temur tuzuklari","Yasa","Qonunnoma","Shariatlar kitobi"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q9',  question:"Amir Temur Samarqandda qurdirgan ulug' maqbara nomi nima?", answers:["Gur Amir","Shoh-i Zinda","Bibixonim","Ruhobod"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q10', question:"Amir Temur nechi marta Hindistonga yurish qildi?", answers:["1 marta","2 marta","3 marta","Hech qachon"], correct:0, topic:"military", difficulty:"easy" },
+  { id:'q11', question:"Bibixonim masjidini kim uchun qurdirdi Amir Temur?", answers:["Saray Mulkxonim (Bibixonim)","Onasi uchun","Qizi uchun","O'zi uchun"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q12', question:"Amir Temur Dehli shahrini qaysi yili bosib oldi?", answers:["1398","1390","1402","1395"], correct:0, topic:"military", difficulty:"easy" },
+  { id:'q13', question:"Amir Temurning to'liq ismi nima?", answers:["Temur ibn Taragʻay Barlos","Muhammad Temur","Sohibqiron Temurbek","G'iyosiddin Temur"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q14', question:"'Sohibqiron' so'zi qanday ma'noni anglatadi?", answers:["Saodatli yulduz ostida tug'ilgan","Buyuk sarkarda","G'alaba qozonuvchi","Ulug' hukmdor"], correct:0, topic:"history", difficulty:"easy" },
+  { id:'q15', question:"Amir Temur Ang'ora jangida qaysi hukmdorni mag'lub etdi?", answers:["Boyazid I (Yildirim)","Sulaymon I","Muhammad II","Mehmed I"], correct:0, topic:"military", difficulty:"easy" },
+
+  // ===== O'RTA (medium) =====
+  { id:'q16', question:"Amir Temur Oltin O'rda xoni Toxtamishni qaysi jangda hal qiluvchi mag'lubiyatga uchratdi?", answers:["Qo'ndurcha jangi (1391)","Terak jangi (1395)","Ang'ora jangi","Samarqand jangi"], correct:0, topic:"military", difficulty:"medium" },
+  { id:'q17', question:"Amir Temur Oltin O'rdaning qaysi poytaxtini vayron qildi?", answers:["Saroy Berke","Kazan","Astirxon","Bulg'or"], correct:0, topic:"military", difficulty:"medium" },
+  { id:'q18', question:"Amir Temur Ang'ora jangini qaysi yili qozondi?", answers:["1402","1395","1398","1404"], correct:0, topic:"military", difficulty:"medium" },
+  { id:'q19', question:"Ulug'bek rasadxonasi qayerda qurilgan?", answers:["Samarqand","Buxoro","Hirot","Toshkent"], correct:0, topic:"science", difficulty:"medium" },
+  { id:'q20', question:"Ulug'bek kim edi?", answers:["Amir Temurning nabirasi","O'g'li","Akasi","Vaziri"], correct:0, topic:"history", difficulty:"medium" },
+  { id:'q21', question:"Amir Temur Xitoyga yurish qilish uchun yo'lga chiqib, yo'lda to'xtagan joyi qayerda edi?", answers:["O'tror","Toshkent","Buxoro","Sirdaryo"], correct:0, topic:"military", difficulty:"medium" },
+  { id:'q22', question:"Amir Temurning eng sevimli o'g'li kim bo'lgan?", answers:["Jahongir","Shohruh","Mironshoh","Umarshayх"], correct:0, topic:"history", difficulty:"medium" },
+  { id:'q23', question:"Temuriylar sulolasidan chiqqan mashhur shoir va davlat arbobi kim?", answers:["Alisher Navoiy","Bobur","Ulug'bek","Husayn Boyqaro"], correct:0, topic:"history", difficulty:"medium" },
+  { id:'q24', question:"Amir Temur Eron hukmdori Muzaffariylarni qaysi yili tor-mor qildi?", answers:["1393","1385","1398","1400"], correct:0, topic:"military", difficulty:"medium" },
+  { id:'q25', question:"Amir Temur Damashq va Bag'dodni qaysi yillarda bosib oldi?", answers:["1400–1401","1395–1396","1387–1388","1403–1404"], correct:0, topic:"military", difficulty:"medium" },
+  { id:'q26', question:"Shoh-i Zinda majmuasi qayerda joylashgan?", answers:["Samarqand","Buxoro","Shahrisabz","Hirot"], correct:0, topic:"geo", difficulty:"medium" },
+  { id:'q27', question:"Amir Temur Chig'atoy ulusida hokimiyatni qaysi yili qo'lga oldi?", answers:["1370","1360","1380","1365"], correct:0, topic:"history", difficulty:"medium" },
+  { id:'q28', question:"'Temur tuzuklari' asarida asosan nima haqida yozilgan?", answers:["Davlat boshqaruvi va harbiy qoidalar","Diniy qonunlar","Dehqonchilik","Savdo yo'llari"], correct:0, topic:"history", difficulty:"medium" },
+  { id:'q29', question:"Amir Temurning asosiy harbiy taktikasi qanday edi?", answers:["Dushman qo'shinini qamab olish va psixologik bosim","To'g'ridan-to'g'ri hujum","Mudofaa urushi","Dengiz janglari"], correct:0, topic:"military", difficulty:"medium" },
+  { id:'q30', question:"Amir Temur Toxtamish bilan ikkinchi hal qiluvchi jangni qayerda berdi?", answers:["Terak daryosi bo'yida (1395)","Volga bo'yida","Don daryosida","Qrim yarim orolida"], correct:0, topic:"military", difficulty:"medium" },
+
+  // ===== QIYIN (hard) =====
+  { id:'q31', question:"Amir Temur 'uch yillik yurish' (1386–1388) davomida qaysi hududlarni bo'ysundirdi?", answers:["Eron, Ozarbayjon, Gruziya, Armaniston","Hindiston, Afg'oniston","Misr, Suriya","Oltin O'rda, Qrim"], correct:0, topic:"military", difficulty:"hard" },
+  { id:'q32', question:"Temurning harbiy bo'linmalarida 'qo'l' deb atalgan bo'linma nechta askardan iborat edi?", answers:["10 000","1 000","100","100 000"], correct:0, topic:"military", difficulty:"hard" },
+  { id:'q33', question:"Ulug'bekning 'Ziji Ko'ragoniy' asari nima haqida?", answers:["Yulduzlar katalogi va astronomiya","Harbiy taktika","Tarix","Tibbiyot"], correct:0, topic:"science", difficulty:"hard" },
+  { id:'q34', question:"Amir Temur Boyazid I ni asir olgandan so'ng qanday muomala qildi?", answers:["Saroyda hurmat bilan saqladi","Qatl ettirdi","Ozod qildi","Zindon soldi"], correct:0, topic:"history", difficulty:"hard" },
+  { id:'q35', question:"'Temurning zulmat yurishi' (1395) Oltin O'rdani vayron qilganda qaysi shaharlar yo'q qilindi?", answers:["Saroy Berke va Saroy Batu","Kazan va Astirxon","Moskva va Novgorod","Kremenets va Kiev"], correct:0, topic:"military", difficulty:"hard" },
+  { id:'q36', question:"Amir Temur Hindistonga yurish paytida Dehli sultonligining qaysi sulolasi hukmronlik qilardi?", answers:["Tug'luqlar sulolasi","Xiljilar","Lodylar","Sayyidlar"], correct:0, topic:"history", difficulty:"hard" },
+  { id:'q37', question:"Bibixonim masjidining qurilishi qaysi yilda yakunlandi?", answers:["1404","1399","1396","1402"], correct:0, topic:"history", difficulty:"hard" },
+  { id:'q38', question:"Amir Temur Ang'ora jangida qancha kishilik qo'shin bilan qatnashgan deb taxmin qilinadi?", answers:["140 000 dan ortiq","50 000","80 000","200 000 dan ortiq"], correct:0, topic:"military", difficulty:"hard" },
+  { id:'q39', question:"Gur Amir maqbarasida kimlar dafn etilgan?", answers:["Amir Temur, Ulug'bek va boshqa temuriylar","Faqat Amir Temur","Amir Temur va Bibixonim","Amir Temur va Jahongir"], correct:0, topic:"history", difficulty:"hard" },
+  { id:'q40', question:"Amir Temur qaysi yili Bag'dodga birinchi marta hujum qildi?", answers:["1393","1400","1387","1395"], correct:0, topic:"military", difficulty:"hard" },
+  { id:'q41', question:"XIV asrda Samarqand qaysi savdo yo'lining markazi hisoblangan?", answers:["Buyuk Ipak yo'li","Hind okeani savdo yo'li","Amber yo'li","Ziravorlar yo'li"], correct:0, topic:"geo", difficulty:"hard" },
+  { id:'q42', question:"Amir Temurning qaysi o'g'li undan keyin Xurosonda hukmronlik qildi?", answers:["Shohruh","Mironshoh","Jahongir","Umarshayx"], correct:0, topic:"history", difficulty:"hard" },
+  { id:'q43', question:"Temurning harbiy strategiyasida 'tulpor' taktikasi nimani anglatadi?", answers:["Dushmanni qoqilib qoldirib, keyin kuchli zarba berish","To'g'ridan-to'g'ri frontdan hujum","Tunda yashirin harakat","Otliq qo'shin bilan qamal"], correct:0, topic:"military", difficulty:"hard" },
+  { id:'q44', question:"Amir Temur Suriyani fath etganida qaysi mamluk sultoniga qarshi jang qildi?", answers:["Faraj ibn Barquq","Qal'avun","Baybars","az-Zohir Barquq"], correct:0, topic:"military", difficulty:"hard" },
+  { id:'q45', question:"Amir Temur vafotidan keyin uning saltanati qancha davlat o'rtasida bo'lindi?", answers:["O'g'illari va nabiralari o'rtasida ko'plab qismlarga","Ikki qismga","Uchta teng qismga","Birlashib qoldi"], correct:0, topic:"history", difficulty:"hard" }
+];
+
+// PIECE UNICODE FALLBACK
+const PIECE_UNICODE = {
+  wK:'♔', wQ:'♕', wR:'♖', wB:'♗', wN:'♘', wP:'♙',
+  bK:'♚', bQ:'♛', bR:'♜', bB:'♝', bN:'♞', bP:'♟'
+};
+
+// PIECE IMAGE PATHS
+const PIECE_IMAGES = {
+  wK:'assets/pieces/wK.png', wQ:'assets/pieces/wQ.png', wR:'assets/pieces/wR.png',
+  wB:'assets/pieces/wB.png', wN:'assets/pieces/wN.png', wP:'assets/pieces/wP.png',
+  bK:'assets/pieces/bK.png', bQ:'assets/pieces/bQ.png', bR:'assets/pieces/bR.png',
+  bB:'assets/pieces/bB.png', bN:'assets/pieces/bN.png', bP:'assets/pieces/bP.png'
+};
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let state = {
+  board: [],          // 8x8 array of piece codes or null
+  owned: [],          // 8x8 array: 0=none, 1=p1, 2=p2
+  turn: 1,            // 1 or 2
+  selected: null,     // {r,c}
+  possibleMoves: [],  // [{r,c, capture}]
+  scores: [0, 0],
+  timers: [0, 0],
+  combo: [0, 0],
+  gameRunning: false,
+  timerInterval: null,
+  questionTimerInterval: null,
+  pendingMove: null,  // {fromR,fromC,toR,toC}
+  playerNames: ['General','Marshal'],
+  difficulty: 'medium',
+  timeLimit: 10,
+  questions: [],
+  usedQuestions: new Set(),
+  settings: { topic:'all', theme:'classic' },
+  checkStatus: [false, false],  // is king in check for p1/p2
+  castlingRights: {
+    wK: true, wQR: true, wKR: true,  // white king, queen-side rook, king-side rook
+    bK: true, bQR: true, bKR: true
+  },
+  enPassant: null,  // {r,c} target square
+  lastMoveFrom: null,
+  lastMoveTo: null,
+  imageCache: {}
+};
+
+// ============================================================
+// INIT BOARD
+// ============================================================
+function initBoard() {
+  const back = ['R','N','B','Q','K','B','N','R'];
+  state.board = [];
+  state.owned = [];
+  for(let r=0;r<8;r++){
+    state.board[r] = [];
+    state.owned[r] = [];
+    for(let c=0;c<8;c++){
+      state.owned[r][c] = 0;
+      if(r===0) state.board[r][c] = 'b'+back[c];
+      else if(r===1) state.board[r][c] = 'bP';
+      else if(r===6) state.board[r][c] = 'wP';
+      else if(r===7) state.board[r][c] = 'w'+back[c];
+      else state.board[r][c] = null;
+    }
+  }
+  state.castlingRights = { wK:true, wQR:true, wKR:true, bK:true, bQR:true, bKR:true };
+  state.enPassant = null;
+}
+
+// ============================================================
+// CHESS LOGIC
+// ============================================================
+function pieceColor(p) { return p ? p[0] : null; }
+function isWhite(p) { return p && p[0]==='w'; }
+function isBlack(p) { return p && p[0]==='b'; }
+function sameColor(a,b) { return a && b && a[0]===b[0]; }
+function currentColor() { return state.turn===1 ? 'w' : 'b'; }
+
+function inBounds(r,c){ return r>=0&&r<8&&c>=0&&c<8; }
+
+function getRawMoves(board,r,c,enPassant) {
+  const p = board[r][c];
+  if(!p) return [];
+  const col = p[0], type = p[1];
+  const moves = [];
+  const enemy = col==='w'?'b':'w';
+
+  const slide = (dr,dc) => {
+    let nr=r+dr,nc=c+dc;
+    while(inBounds(nr,nc)){
+      if(board[nr][nc]){
+        if(pieceColor(board[nr][nc])===enemy) moves.push({r:nr,c:nc,capture:true});
+        break;
+      }
+      moves.push({r:nr,c:nc,capture:false});
+      nr+=dr; nc+=dc;
+    }
+  };
+
+  if(type==='P'){
+    const dir = col==='w'?-1:1;
+    const startRow = col==='w'?6:1;
+    if(inBounds(r+dir,c) && !board[r+dir][c]){
+      moves.push({r:r+dir,c,capture:false});
+      if(r===startRow && !board[r+2*dir][c])
+        moves.push({r:r+2*dir,c,capture:false});
+    }
+    for(const dc of [-1,1]){
+      if(inBounds(r+dir,c+dc)){
+        if(board[r+dir][c+dc] && pieceColor(board[r+dir][c+dc])===enemy)
+          moves.push({r:r+dir,c:c+dc,capture:true});
+        else if(enPassant && enPassant.r===r+dir && enPassant.c===c+dc)
+          moves.push({r:r+dir,c:c+dc,capture:true,enPassant:true});
+      }
+    }
+  }
+  else if(type==='N'){
+    for(const [dr,dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){
+      const nr=r+dr,nc=c+dc;
+      if(inBounds(nr,nc) && !sameColor(board[nr][nc],p))
+        moves.push({r:nr,c:nc,capture:!!board[nr][nc]});
+    }
+  }
+  else if(type==='B') { slide(-1,-1);slide(-1,1);slide(1,-1);slide(1,1); }
+  else if(type==='R') { slide(-1,0);slide(1,0);slide(0,-1);slide(0,1); }
+  else if(type==='Q') {
+    slide(-1,-1);slide(-1,1);slide(1,-1);slide(1,1);
+    slide(-1,0);slide(1,0);slide(0,-1);slide(0,1);
+  }
+  else if(type==='K'){
+    for(const [dr,dc] of [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]){
+      const nr=r+dr,nc=c+dc;
+      if(inBounds(nr,nc) && !sameColor(board[nr][nc],p))
+        moves.push({r:nr,c:nc,capture:!!board[nr][nc]});
+    }
+  }
+  return moves;
+}
+
+function findKing(board, col){
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++)
+    if(board[r][c]===col+'K') return {r,c};
+  return null;
+}
+
+function isSquareAttacked(board, r, c, byColor, ep=null){
+  for(let fr=0;fr<8;fr++) for(let fc=0;fc<8;fc++){
+    if(pieceColor(board[fr][fc])===byColor){
+      const moves = getRawMoves(board,fr,fc,ep);
+      if(moves.some(m=>m.r===r&&m.c===c)) return true;
+    }
+  }
+  return false;
+}
+
+function isInCheck(board, col, ep=null){
+  const k = findKing(board, col);
+  if(!k) return false;
+  const enemy = col==='w'?'b':'w';
+  return isSquareAttacked(board, k.r, k.c, enemy, ep);
+}
+
+function applyMove(board, fromR, fromC, toR, toC, ep, castRights){
+  const nb = board.map(r=>[...r]);
+  const p = nb[fromR][fromC];
+  const col = p[0]; const type = p[1];
+  let newEP = null;
+  const newCR = {...castRights};
+
+  // En passant capture
+  if(type==='P' && ep && toR===ep.r && toC===ep.c){
+    const captureRow = col==='w' ? toR+1 : toR-1;
+    nb[captureRow][toC] = null;
+  }
+
+  // Castling
+  if(type==='K'){
+    newCR[col+'K'] = false;
+    newCR[col+'QR'] = false;
+    newCR[col+'KR'] = false;
+    if(Math.abs(toC-fromC)===2){
+      if(toC>fromC){ nb[fromR][5]=col+'R'; nb[fromR][7]=null; }
+      else { nb[fromR][3]=col+'R'; nb[fromR][0]=null; }
+    }
+  }
+  if(type==='R'){
+    if(fromC===0) newCR[col+'QR']=false;
+    if(fromC===7) newCR[col+'KR']=false;
+  }
+
+  // Pawn double push → set en passant
+  if(type==='P' && Math.abs(toR-fromR)===2)
+    newEP = {r:(fromR+toR)/2, c:toC};
+
+  // Pawn promotion
+  let newPiece = p;
+  if(type==='P' && (toR===0||toR===7)) newPiece = col+'Q';
+
+  nb[toR][toC] = newPiece;
+  nb[fromR][fromC] = null;
+  return { board:nb, enPassant:newEP, castlingRights:newCR };
+}
+
+function getLegalMoves(board, r, c, ep, castRights){
+  const p = board[r][c];
+  if(!p) return [];
+  const col = p[0]; const type = p[1];
+  let moves = getRawMoves(board, r, c, ep);
+
+  // Castling
+  if(type==='K' && castRights[col+'K']){
+    const backRow = col==='w'?7:0;
+    const enemy = col==='w'?'b':'w';
+    if(r===backRow && c===4){
+      // King-side
+      if(castRights[col+'KR'] && !board[backRow][5] && !board[backRow][6]){
+        if(!isSquareAttacked(board,backRow,4,enemy,ep) &&
+           !isSquareAttacked(board,backRow,5,enemy,ep) &&
+           !isSquareAttacked(board,backRow,6,enemy,ep))
+          moves.push({r:backRow,c:6,capture:false,castle:true});
+      }
+      // Queen-side
+      if(castRights[col+'QR'] && !board[backRow][3] && !board[backRow][2] && !board[backRow][1]){
+        if(!isSquareAttacked(board,backRow,4,enemy,ep) &&
+           !isSquareAttacked(board,backRow,3,enemy,ep) &&
+           !isSquareAttacked(board,backRow,2,enemy,ep))
+          moves.push({r:backRow,c:2,capture:false,castle:true});
+      }
+    }
+  }
+
+  // Filter moves that leave king in check
+  moves = moves.filter(m=>{
+    const {board:nb, enPassant:nep} = applyMove(board,r,c,m.r,m.c,ep,castRights);
+    return !isInCheck(nb, col, nep);
+  });
+  return moves;
+}
+
+function isCheckmate(board, col, ep, castRights){
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++)
+    if(pieceColor(board[r][c])===col)
+      if(getLegalMoves(board,r,c,ep,castRights).length>0) return false;
+  return true;
+}
+
+function isStalemate(board, col, ep, castRights){
+  if(isInCheck(board,col,ep)) return false;
+  return isCheckmate(board,col,ep,castRights);
+}
+
+// ============================================================
+// BOARD RENDERING
+// ============================================================
+function calcCellSize(){
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const bodyH = vh - 100; // header + status
+  const size = Math.floor(Math.min(vw - 48, bodyH - 24, 560) / 8);
+  return Math.max(size, 38);
+}
+
+function preloadImages(callback) {
+  let loaded=0, total=Object.keys(PIECE_IMAGES).length;
+  let anyFailed=false;
+  Object.entries(PIECE_IMAGES).forEach(([key,src])=>{
+    const img = new Image();
+    img.onload = ()=>{ state.imageCache[key]=src; if(++loaded===total) callback(!anyFailed); };
+    img.onerror = ()=>{ anyFailed=true; if(++loaded===total) callback(!anyFailed); };
+    img.src = src;
+  });
+}
+
+function renderPiece(p) {
+  if(state.imageCache[p]) {
+    return `<img class="piece" src="${state.imageCache[p]}" alt="${p}">`;
+  }
+  const cls = isWhite(p)?'white':'black';
+  return `<span class="piece-text ${cls}">${PIECE_UNICODE[p]||'?'}</span>`;
+}
+
+function renderBoard() {
+  const board = document.getElementById('chess-board');
+  const cellSize = calcCellSize();
+  board.style.width = board.style.height = (cellSize*8)+'px';
+  board.style.gridTemplateColumns = `repeat(8, ${cellSize}px)`;
+
+  // Labels
+  const ranks = document.getElementById('rank-labels');
+  const files = document.getElementById('file-labels');
+  ranks.innerHTML = ['8','7','6','5','4','3','2','1'].map(l=>`<span style="height:${cellSize}px;line-height:${cellSize}px">${l}</span>`).join('');
+  files.innerHTML = ['a','b','c','d','e','f','g','h'].map(l=>`<span style="width:${cellSize}px;text-align:center">${l}</span>`).join('');
+
+  board.innerHTML = '';
+  for(let r=0;r<8;r++){
+    for(let c=0;c<8;c++){
+      const cell = document.createElement('div');
+      cell.className = 'cell ' + ((r+c)%2===0?'light':'dark');
+      cell.style.width = cell.style.height = cellSize+'px';
+      cell.dataset.r = r; cell.dataset.c = c;
+
+      if(state.owned[r][c]===1) cell.classList.add('owned-p1');
+      if(state.owned[r][c]===2) cell.classList.add('owned-p2');
+
+      if(state.selected && state.selected.r===r && state.selected.c===c)
+        cell.classList.add('selected');
+
+      const possible = state.possibleMoves.find(m=>m.r===r&&m.c===c);
+      if(possible) cell.classList.add(possible.capture?'capture-move':'possible-move');
+
+      if(state.lastMoveFrom && state.lastMoveFrom.r===r && state.lastMoveFrom.c===c)
+        cell.style.boxShadow = 'inset 0 0 0 3px rgba(201,168,76,0.5)';
+      if(state.lastMoveTo && state.lastMoveTo.r===r && state.lastMoveTo.c===c)
+        cell.style.boxShadow = 'inset 0 0 0 3px rgba(201,168,76,0.7)';
+
+      const p = state.board[r][c];
+      if(p){
+        const col = p[0];
+        const inCheckNow = state.checkStatus[col==='w'?0:1];
+        if(p[1]==='K' && inCheckNow) cell.classList.add('in-check');
+        cell.innerHTML = renderPiece(p);
+      }
+
+      cell.addEventListener('click', ()=>handleCellClick(r,c));
+      board.appendChild(cell);
+    }
+  }
+}
+
+// ============================================================
+// CELL CLICK
+// ============================================================
+function handleCellClick(r, c) {
+  if(!state.gameRunning) return;
+  const p = state.board[r][c];
+  const col = currentColor();
+
+  if(state.selected){
+    const move = state.possibleMoves.find(m=>m.r===r&&m.c===c);
+    if(move){
+      // Execute move → show question
+      state.pendingMove = {fromR:state.selected.r, fromC:state.selected.c, toR:r, toC:c, move};
+      state.selected = null;
+      state.possibleMoves = [];
+      renderBoard();
+      showQuestion();
+      return;
+    }
+    // Select another piece of same color
+    if(p && p[0]===col){
+      state.selected = {r,c};
+      state.possibleMoves = getLegalMoves(state.board,r,c,state.enPassant,state.castlingRights);
+      renderBoard();
+      return;
+    }
+    state.selected = null;
+    state.possibleMoves = [];
+    renderBoard();
+    return;
+  }
+
+  if(p && p[0]===col){
+    state.selected = {r,c};
+    state.possibleMoves = getLegalMoves(state.board,r,c,state.enPassant,state.castlingRights);
+    renderBoard();
+  }
+}
+
+// ============================================================
+// EXECUTE MOVE
+// ============================================================
+function executeMove(fromR, fromC, toR, toC, move) {
+  const wasCapture = !!state.board[toR][toC] || move.enPassant;
+  const { board:nb, enPassant:nep, castlingRights:ncr } = applyMove(
+    state.board, fromR, fromC, toR, toC,
+    state.enPassant, state.castlingRights
+  );
+  state.board = nb;
+  state.enPassant = nep;
+  state.castlingRights = ncr;
+  state.owned[toR][toC] = state.turn;
+  state.owned[fromR][fromC] = 0;
+
+  // If en passant, clear captured pawn's cell ownership
+  const movedPiece = state.board[toR][toC];
+  if(movedPiece && movedPiece[1]==='P' && move.enPassant){
+    const capR = state.turn===1 ? toR+1 : toR-1;
+    state.owned[capR][toC] = 0;
+  }
+
+  state.lastMoveFrom = {r:fromR,c:fromC};
+  state.lastMoveTo = {r:toR,c:toC};
+  state.scores[state.turn-1] = countOwnedCells(state.turn);
+
+  // Check for check/checkmate
+  const enemy = state.turn===1 ? 'b' : 'w';
+  const enemyInCheck = isInCheck(state.board, enemy, state.enPassant);
+  state.checkStatus[state.turn===1?1:0] = enemyInCheck;
+  state.checkStatus[state.turn-1] = false;
+
+  if(enemyInCheck && isCheckmate(state.board, enemy, state.enPassant, state.castlingRights)){
+    // Checkmate!
+    const bonus = 5;
+    state.scores[state.turn-1] += bonus;
+    updateScoreUI();
+    renderBoard();
+    setTimeout(()=>endGame('checkmate', state.turn), 300);
+    return false; // don't continue
+  }
+
+  if(isStalemate(state.board, enemy, state.enPassant, state.castlingRights)){
+    setTimeout(()=>endGame('stalemate'), 300);
+    return false;
+  }
+
+  return true;
+}
+
+function countOwnedCells(player) {
+  let count = 0;
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++)
+    if(state.owned[r][c]===player) count++;
+  return count;
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+function startTimers() {
+  state.timerInterval = setInterval(()=>{
+    if(!state.gameRunning) return;
+    state.timers[state.turn-1]--;
+    if(state.timers[state.turn-1]<=0){
+      state.timers[state.turn-1]=0;
+      updateTimerUI();
+      endGame('timeout', state.turn===1?2:1);
+      return;
+    }
+    updateTimerUI();
+  }, 1000);
+}
+
+function formatTime(s) {
+  const m = Math.floor(s/60);
+  const sec = s%60;
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+function updateTimerUI() {
+  const t1 = state.timers[0], t2 = state.timers[1];
+  const e1 = document.getElementById('p1-timer');
+  const e2 = document.getElementById('p2-timer');
+  e1.textContent = formatTime(t1);
+  e2.textContent = formatTime(t2);
+  e1.className = 'player-timer' + (t1<60&&state.turn===1?' warning':'');
+  e2.className = 'player-timer' + (t2<60&&state.turn===2?' warning':'');
+}
+
+function updateScoreUI() {
+  document.getElementById('p1-score').textContent = state.scores[0]+' kat.';
+  document.getElementById('p2-score').textContent = state.scores[1]+' kat.';
+}
+
+function updateTurnUI() {
+  const names = state.playerNames;
+  document.getElementById('turn-label').textContent = (state.turn===1?names[0]:names[1])+' YURADI';
+  document.getElementById('p1-panel').classList.toggle('active-turn', state.turn===1);
+  document.getElementById('p2-panel').classList.toggle('active-turn', state.turn===2);
+}
+
+function updateComboUI() {
+  for(let i=0;i<2;i++){
+    const el = document.getElementById(`p${i+1}-combo`);
+    if(state.combo[i]>0){
+      el.style.display='';
+      el.textContent = '🔥x'+state.combo[i];
+    } else {
+      el.style.display='none';
+    }
+  }
+}
+
+// ============================================================
+// QUESTION SYSTEM
+// ============================================================
+function getQuestion() {
+  const diff = state.difficulty;
+  const topic = state.settings.topic;
+  let pool = state.questions.filter(q => {
+    const diffMatch = q.difficulty === diff;
+    const topicMatch = topic==='all' || q.topic===topic;
+    return diffMatch && topicMatch && !state.usedQuestions.has(q.id||q.question);
+  });
+  if(pool.length===0){
+    state.usedQuestions.clear();
+    pool = state.questions.filter(q=>{
+      const diffMatch = q.difficulty===diff;
+      const topicMatch = topic==='all' || q.topic===topic;
+      return diffMatch && topicMatch;
+    });
+  }
+  if(pool.length===0) pool = state.questions;
+  if(pool.length===0) return null;
+  const q = pool[Math.floor(Math.random()*pool.length)];
+  state.usedQuestions.add(q.id||q.question);
+  return q;
+}
+
+function showQuestion() {
+  const q = getQuestion();
+  if(!q){
+    // No questions: just execute move
+    const {fromR,fromC,toR,toC,move} = state.pendingMove;
+    const ok = executeMove(fromR,fromC,toR,toC,move);
+    if(ok){ switchTurn(); renderBoard(); setStatus(); }
+    return;
+  }
+
+  const pName = state.playerNames[state.turn-1];
+  document.getElementById('q-player-label').textContent = `⚔ ${pName} — SAVOL`;
+
+  const diffMap = {easy:'🟢 OSON', medium:'🟡 O\'RTA', hard:'🔴 QIYIN'};
+  document.getElementById('q-difficulty-badge').textContent = diffMap[q.difficulty]||'';
+
+  document.getElementById('q-text').textContent = q.question;
+
+  // Build answers — shuffle so correct is NOT always first
+  const correctText = q.answers[q.correct]; // save correct answer TEXT before shuffle
+  let answers = [...q.answers];
+  if(state.difficulty==='easy') {
+    // Keep correct + 1 random wrong answer only
+    const wrongs = answers.filter((_,i) => i !== q.correct);
+    const oneWrong = wrongs[Math.floor(Math.random() * wrongs.length)];
+    answers = [correctText, oneWrong];
+  }
+  // Fisher-Yates shuffle — randomize positions
+  for(let i = answers.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [answers[i], answers[j]] = [answers[j], answers[i]];
+  }
+  const newCorrectIndex = answers.indexOf(correctText); // find where correct landed after shuffle
+
+  const letters = ['A','B','C','D'];
+  const answersDiv = document.getElementById('q-answers');
+  answersDiv.className = 'answers-grid';
+  if(answers.length<=2) answersDiv.style.gridTemplateColumns='1fr 1fr';
+  else answersDiv.style.gridTemplateColumns='1fr 1fr';
+
+  answersDiv.innerHTML = answers.map((a,i)=>`
+    <button class="answer-btn" onclick="handleAnswer(${i},${newCorrectIndex})">
+      <span class="answer-letter">${letters[i]}</span>${a}
+    </button>
+  `).join('');
+
+  // Timer for hard
+  const timerBar = document.getElementById('q-timer-bar');
+  const timerFill = document.getElementById('q-timer-fill');
+  if(state.difficulty==='hard'){
+    timerBar.style.display='';
+    timerFill.style.width='100%';
+    let remaining = 15;
+    document.getElementById('q-info').textContent = `⏱ ${remaining} soniya`;
+    state.questionTimerInterval = setInterval(()=>{
+      remaining--;
+      timerFill.style.width = (remaining/15*100)+'%';
+      document.getElementById('q-info').textContent = `⏱ ${remaining} soniya`;
+      if(remaining<=0){
+        clearInterval(state.questionTimerInterval);
+        handleAnswer(-1, newCorrectIndex); // timeout = wrong
+      }
+    },1000);
+  } else {
+    timerBar.style.display='none';
+    document.getElementById('q-info').textContent = '';
+  }
+
+  document.getElementById('question-modal').classList.add('open');
+}
+
+function handleAnswer(chosen, correct) {
+  clearInterval(state.questionTimerInterval);
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b=>b.disabled=true);
+  btns.forEach((b,i)=>{
+    if(i===correct) b.classList.add('correct');
+    else if(i===chosen) b.classList.add('wrong');
+  });
+
+  const isCorrect = chosen===correct;
+  const pi = state.turn-1;
+
+  if(isCorrect){
+    state.combo[pi]++;
+    if(state.combo[pi]>=3){
+      state.timers[pi]+=30;
+      state.combo[pi]=0;
+      showToast('🔥 KOMBO! +30 soniya!','success');
+    }
+    updateComboUI();
+    document.getElementById('q-info').textContent = '✅ To\'g\'ri! Yurish amalga oshmoqda...';
+    setTimeout(()=>{
+      closeQuestionModal();
+      const {fromR,fromC,toR,toC,move} = state.pendingMove;
+      const ok = executeMove(fromR,fromC,toR,toC,move);
+      if(ok){ switchTurn(); renderBoard(); setStatus(); }
+    },900);
+  } else {
+    state.combo[pi]=0;
+    updateComboUI();
+    document.getElementById('q-info').textContent = `❌ Noto\'g\'ri! Navbat ${state.playerNames[state.turn===1?1:0]}ga o'tdi.`;
+    setTimeout(()=>{
+      closeQuestionModal();
+      switchTurn();
+      renderBoard();
+      setStatus();
+    },1200);
+  }
+}
+
+function closeQuestionModal(){
+  document.getElementById('question-modal').classList.remove('open');
+}
+
+function switchTurn(){
+  state.turn = state.turn===1?2:1;
+  updateTurnUI();
+  updateTimerUI();
+}
+
+function setStatus(){
+  const enemy = currentColor();
+  const col = state.turn===1?'w':'b';
+  if(isInCheck(state.board,col,state.enPassant)){
+    setStatusText(`⚠ ${state.playerNames[state.turn-1]}ning SHOHI XAVF OSTIDA!`);
+  } else {
+    setStatusText(`${state.playerNames[state.turn-1]} o'z figurasini tanlaydi...`);
+  }
+}
+
+function setStatusText(t){ document.getElementById('status-bar').textContent=t; }
+
+// ============================================================
+// START / END GAME
+// ============================================================
+function startGame() {
+  const p1 = document.getElementById('p1-name').value.trim()||'General';
+  const p2 = document.getElementById('p2-name').value.trim()||'Marshal';
+  state.playerNames = [p1,p2];
+  state.difficulty = document.getElementById('difficulty').value;
+  state.timeLimit = parseInt(document.getElementById('time-limit').value)||10;
+  state.settings.topic = document.getElementById('question-topic').value;
+  state.timers = [state.timeLimit*60, state.timeLimit*60];
+  state.scores = [0,0];
+  state.combo = [0,0];
+  state.turn = 1;
+  state.selected = null;
+  state.possibleMoves = [];
+  state.pendingMove = null;
+  state.usedQuestions = new Set();
+  state.checkStatus = [false,false];
+  state.lastMoveFrom = null;
+  state.lastMoveTo = null;
+  state.gameRunning = true;
+  clearInterval(state.timerInterval);
+
+  initBoard();
+  loadQuestionsAndStart();
+}
+
+function loadQuestionsAndStart(){
+  const initUI = () => {
+    document.getElementById('p1-display').textContent = state.playerNames[0];
+    document.getElementById('p2-display').textContent = state.playerNames[1];
+    updateTimerUI();
+    updateScoreUI();
+    updateTurnUI();
+    updateComboUI();
+    showScreen('game-screen');
+
+    preloadImages(()=>{
+      renderBoard();
+      startTimers();
+      setStatus();
+    });
+  };
+
+  // Try Firebase first
+  if(window.fbReady && window.fbReady()){
+    window.fbLoadQuestions().then(data=>{
+      if(data && Object.keys(data).length>0){
+        state.questions = Object.entries(data).map(([id,q])=>({...q,id}));
+      } else {
+        state.questions = loadLocalQuestions();
+      }
+      if(state.questions.length===0) state.questions = DEFAULT_QUESTIONS;
+      initUI();
+    }).catch(()=>{
+      state.questions = loadLocalQuestions();
+      if(state.questions.length===0) state.questions = DEFAULT_QUESTIONS;
+      initUI();
+    });
+  } else {
+    state.questions = loadLocalQuestions();
+    if(state.questions.length===0) state.questions = DEFAULT_QUESTIONS;
+    initUI();
+  }
+}
+
+function endGame(reason, winner=null){
+  state.gameRunning = false;
+  clearInterval(state.timerInterval);
+  clearInterval(state.questionTimerInterval);
+  closeQuestionModal();
+
+  // Count final scores
+  state.scores[0] = countOwnedCells(1);
+  state.scores[1] = countOwnedCells(2);
+
+  if(reason==='checkmate' && winner){
+    state.scores[winner-1] += 5;
+  }
+
+  const [s1,s2] = state.scores;
+  const [n1,n2] = state.playerNames;
+  let winnerName, trophy;
+
+  if(reason==='timeout'){
+    const winP = state.timers[0]>0?1:2;
+    winnerName = state.playerNames[winP-1];
+    trophy = '⏰';
+  } else if(reason==='checkmate'){
+    winnerName = winner ? state.playerNames[winner-1] : '?';
+    trophy = '♚';
+  } else if(reason==='stalemate'){
+    winnerName = null;
+    trophy = '🤝';
+  } else {
+    if(s1>s2) winnerName=n1;
+    else if(s2>s1) winnerName=n2;
+    else winnerName=null;
+    trophy = winnerName ? '🏆' : '🤝';
+  }
+
+  document.getElementById('go-trophy').textContent = trophy;
+  document.getElementById('go-title').textContent = winnerName ? 'G\'OLIB!' : 'DURRANG!';
+  document.getElementById('go-winner').textContent = winnerName ? `${winnerName} g'alaba qozondi!` : 'Teng natija!';
+  document.getElementById('go-name1').textContent = n1;
+  document.getElementById('go-name2').textContent = n2;
+  document.getElementById('go-num1').textContent = s1;
+  document.getElementById('go-num2').textContent = s2;
+  document.getElementById('go-score1').classList.toggle('winner-box', s1>s2);
+  document.getElementById('go-score2').classList.toggle('winner-box', s2>s1);
+
+  showScreen('gameover-screen');
+}
+
+function confirmEndGame(){
+  if(confirm('Jangni tugatmoqchimisiz?')) endGame('manual');
+}
+
+function goToSetup(){
+  clearInterval(state.timerInterval);
+  showScreen('setup-screen');
+}
+
+// ============================================================
+// TEACHER MODE
+// ============================================================
+let allQuestions = {};
+let teacherUnlisten = null;
+
+function openTeacher(){
+  document.getElementById('teacher-modal').classList.add('open');
+  switchTab('add');
+  loadTeacherQuestions();
+  // Listen for realtime updates
+  if(window.fbReady && window.fbReady() && !teacherUnlisten){
+    window.fbListenQuestions(data=>{
+      allQuestions = data||{};
+      renderQuestionList();
+    });
+    teacherUnlisten = true;
+  } else {
+    allQuestions = getLocalQuestionsObj();
+    renderQuestionList();
+  }
+}
+
+function closeTeacher(){
+  document.getElementById('teacher-modal').classList.remove('open');
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  event.target.classList.add('active');
+  if(tab==='list') renderQuestionList();
+}
+
+function loadTeacherQuestions(){
+  if(window.fbReady && window.fbReady()){
+    window.fbLoadQuestions().then(data=>{
+      allQuestions = data||{};
+      renderQuestionList();
+    });
+  } else {
+    allQuestions = getLocalQuestionsObj();
+    renderQuestionList();
+  }
+}
+
+async function saveQuestion(){
+  const q = document.getElementById('f-question').value.trim();
+  const a1 = document.getElementById('f-a1').value.trim();
+  const a2 = document.getElementById('f-a2').value.trim();
+  const a3 = document.getElementById('f-a3').value.trim();
+  const a4 = document.getElementById('f-a4').value.trim();
+  const correct = parseInt(document.getElementById('f-correct').value)||0;
+  const topic = document.getElementById('f-topic').value;
+  const diff = document.getElementById('f-difficulty').value;
+
+  if(!q||!a1||!a2){ showToast('Savol va kamida 2 ta javob kiritish kerak!','error'); return; }
+
+  const answers = [a1,a2,a3,a4].filter(Boolean);
+  const newQ = { question:q, answers, correct, topic, difficulty:diff };
+  const id = 'q_'+Date.now();
+
+  if(window.fbReady && window.fbReady()){
+    const ok = await window.fbSaveQuestion(id, newQ);
+    if(ok) showToast('Savol Firebase\'ga saqlandi! ✓','success');
+    else { saveLocal(id,newQ); showToast('Firebase xato! Mahalliy saqlandi.','info'); }
+  } else {
+    saveLocal(id,newQ);
+    showToast('Savol mahalliy saqlandi ✓','success');
+  }
+
+  // Clear form
+  ['f-question','f-a1','f-a2','f-a3','f-a4'].forEach(id=>document.getElementById(id).value='');
+  loadTeacherQuestions();
+}
+
+async function deleteQuestion(id){
+  if(!confirm('Bu savolni o\'chirasizmi?')) return;
+  if(window.fbReady && window.fbReady()){
+    const ok = await window.fbDeleteQuestion(id);
+    if(ok) showToast('O\'chirildi ✓','success');
+    else showToast('Firebase xato!','error');
+  } else {
+    const qs = getLocalQuestionsObj();
+    delete qs[id];
+    localStorage.setItem('strategiya_questions', JSON.stringify(qs));
+    allQuestions = qs;
+    renderQuestionList();
+    showToast('O\'chirildi ✓','success');
+  }
+}
+
+function renderQuestionList(){
+  const search = (document.getElementById('q-search')||{}).value||'';
+  const list = document.getElementById('q-list');
+  if(!list) return;
+  const entries = Object.entries(allQuestions);
+  const filtered = entries.filter(([,q])=>
+    q.question && q.question.toLowerCase().includes(search.toLowerCase())
+  );
+  document.getElementById('q-count').textContent = filtered.length+'/'+entries.length+' ta';
+  if(filtered.length===0){
+    list.innerHTML = '<p style="color:var(--text2);text-align:center;padding:20px">Savollar topilmadi</p>';
+    return;
+  }
+  const diffIcon = {easy:'🟢',medium:'🟡',hard:'🔴'};
+  list.innerHTML = filtered.map(([id,q])=>`
+    <div class="q-item">
+      <div style="flex:1">
+        <div class="q-item-text">${q.question}</div>
+        <div class="q-item-meta">${diffIcon[q.difficulty]||''} ${q.difficulty||''} · ${q.topic||''} · To\'g\'ri: ${q.answers?.[q.correct]||'?'}</div>
+      </div>
+      <button class="q-item-del" onclick="deleteQuestion('${id}')">🗑</button>
+    </div>
+  `).join('');
+}
+
+function exportQuestions(){
+  const data = Object.entries(allQuestions).map(([id,q])=>({id,...q}));
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'strategiya_questions.json';
+  a.click();
+  showToast('Eksport tayyor ✓','success');
+}
+
+function importQuestions(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async(e)=>{
+    try {
+      const arr = JSON.parse(e.target.result);
+      if(!Array.isArray(arr)) throw new Error('Array emas');
+      let count=0;
+      for(const q of arr){
+        if(!q.question||!q.answers) continue;
+        const id = q.id||('q_'+Date.now()+'_'+count);
+        const qData = {question:q.question,answers:q.answers,correct:q.correct||0,topic:q.topic||'history',difficulty:q.difficulty||'medium'};
+        if(window.fbReady && window.fbReady()) await window.fbSaveQuestion(id, qData);
+        else saveLocal(id, qData);
+        count++;
+      }
+      showToast(`${count} ta savol import qilindi ✓`,'success');
+      loadTeacherQuestions();
+    } catch(err) {
+      showToast('JSON formati xato!','error');
+    }
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+// LOCAL STORAGE FALLBACK
+function saveLocal(id, q){
+  const qs = getLocalQuestionsObj();
+  qs[id] = q;
+  localStorage.setItem('strategiya_questions', JSON.stringify(qs));
+  allQuestions = qs;
+  renderQuestionList();
+}
+
+function getLocalQuestionsObj(){
+  try { return JSON.parse(localStorage.getItem('strategiya_questions'))||{}; }
+  catch(e){ return {}; }
+}
+
+function loadLocalQuestions(){
+  const obj = getLocalQuestionsObj();
+  const arr = Object.entries(obj).map(([id,q])=>({...q,id}));
+  return arr.length>0 ? arr : DEFAULT_QUESTIONS;
+}
+
+// ============================================================
+// THEME SYSTEM
+// ============================================================
+document.querySelectorAll('.theme-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const t = btn.dataset.t;
+    document.body.setAttribute('data-theme', t==='classic'?'':t);
+    state.settings.theme = t;
+    if(t==='cyber') startMatrix();
+    else stopMatrix();
+    if(t==='colorful') startStars();
+    else stopStars();
+  });
+});
+
+// MATRIX EFFECT
+let matrixAnim;
+function startMatrix(){
+  const canvas = document.getElementById('matrix-canvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const cols = Math.floor(canvas.width/16);
+  const drops = Array(cols).fill(1);
+  const chars = 'アイウエオカキクケコ01ストハムYZAB';
+  matrixAnim = setInterval(()=>{
+    ctx.fillStyle='rgba(5,5,16,0.05)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#0f0';
+    ctx.font='14px monospace';
+    drops.forEach((y,i)=>{
+      const c = chars[Math.floor(Math.random()*chars.length)];
+      ctx.fillText(c, i*16, y*16);
+      if(y*16>canvas.height && Math.random()>0.975) drops[i]=0;
+      drops[i]++;
+    });
+  },50);
+}
+function stopMatrix(){ clearInterval(matrixAnim); const cv=document.getElementById('matrix-canvas'); cv.getContext('2d').clearRect(0,0,cv.width,cv.height); }
+
+// STARS EFFECT
+let starsAnim;
+function startStars(){
+  const canvas = document.getElementById('stars-canvas');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const ctx=canvas.getContext('2d');
+  const stars=Array.from({length:120},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2+0.5,v:Math.random()*0.3+0.1,color:`hsl(${Math.random()*360},100%,80%)`}));
+  starsAnim=setInterval(()=>{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    stars.forEach(s=>{
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=s.color;
+      ctx.fill();
+      s.y+=s.v;
+      if(s.y>canvas.height){s.y=0;s.x=Math.random()*canvas.width;}
+    });
+  },30);
+}
+function stopStars(){ clearInterval(starsAnim); const cv=document.getElementById('stars-canvas'); cv.getContext('2d').clearRect(0,0,cv.width,cv.height); }
+
+// ============================================================
+// UTILS
+// ============================================================
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showToast(msg, type='info'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// Resize
+window.addEventListener('resize',()=>{ if(state.gameRunning) renderBoard(); });
+
+// ============================================================
+// BOOT
+// ============================================================
+window.addEventListener('load',()=>{
+  showScreen('setup-screen');
+});
+
+// Hide "Back to Hub" button during gameplay, show only on setup screen
+const backBtn = document.getElementById('backToHubBtn');
+const setupScreen = document.getElementById('setup-screen');
+const gameScreen = document.getElementById('game-screen');
+
+function updateBackButtonVisibility() {
+  if (backBtn) {
+    // Show button only when setup screen is active
+    backBtn.style.display = (setupScreen && setupScreen.classList.contains('active')) ? 'inline-flex' : 'none';
+  }
+}
+
+// Call initially and whenever screens change
+if (setupScreen && gameScreen) {
+  // Observe class changes on screens (when active class toggles)
+  const observer = new MutationObserver(() => updateBackButtonVisibility());
+  observer.observe(setupScreen, { attributes: true, attributeFilter: ['class'] });
+  observer.observe(gameScreen, { attributes: true, attributeFilter: ['class'] });
+  updateBackButtonVisibility();
+}
+
+// Also call after any manual screen change (like startGame, resetGame)
+// You can simply call updateBackButtonVisibility() inside startGame() and resetGame().
+// For example, inside your existing startGame() function, add:
+//   updateBackButtonVisibility();
+// And inside resetGame() (or when returning to setup), add:
+//   updateBackButtonVisibility();
+</script>
+</body>
+</html>
